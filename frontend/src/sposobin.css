@@ -1,0 +1,1215 @@
+/* ============================================================
+   Sposobin 样式 - 结合 src2 极光主题 + src3 布局
+   ============================================================ */
+
+/* 字体导入 */
+@import url('https://fonts.googleapis.cn/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Bravura 音乐字体 */
+@font-face {
+  font-family: 'Bravura';
+  src: url('/Bravura.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   CSS 变量 - src2 极光主题色
+   ============================================================ */
+:root {
+  /* 基础背景 */
+  --bg-start: #f6f7fb;
+  --bg-end: #eef2fb;
+  
+  /* 表面颜色 */
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-solid: #ffffff;
+  --surface-hover: rgba(255, 255, 255, 0.85);
+  
+  /* 文字颜色 */
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  
+  /* 边框颜色 */
+  --border: rgba(180, 200, 230, 0.45);
+  --border-solid: #d0dae8;
+  --border-light: rgba(200, 215, 240, 0.3);
+  
+  /* 强调色 - 功能色 */
+  --accent-gold: #b8860b;
+  --accent-gold-light: rgba(180, 160, 60, 0.12);
+  --accent-green: #16a34a;
+  --accent-green-light: rgba(22, 163, 74, 0.12);
+  --accent-red: #dc2626;
+  --accent-red-light: rgba(220, 38, 38, 0.12);
+  --accent-indigo: #6366f1;
+  --accent-indigo-light: rgba(99, 102, 241, 0.12);
+  --accent-amber: #d97706;
+  --accent-amber-light: rgba(217, 119, 6, 0.12);
+  --accent-violet: #8b5cf6;
+  --accent-violet-light: rgba(139, 92, 246, 0.12);
+  --accent-cyan: #0891b2;
+  --accent-cyan-light: rgba(8, 145, 178, 0.12);
+  
+  /* 五线谱颜色 */
+  --staff-line: #94a3b8;
+  --note-head: #1e293b;
+  --score-bg: rgba(255, 255, 255, 0.7);
+  --clef-color: #64748b;
+  
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px rgba(30, 60, 100, 0.06);
+  --shadow-md: 0 4px 16px rgba(30, 60, 100, 0.08);
+  --shadow-lg: 0 8px 32px rgba(30, 60, 100, 0.1);
+  
+  /* 毛玻璃 */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 4px 24px rgba(30, 60, 110, 0.08);
+  --glass-blur: 16px;
+  
+  /* 字体 */
+  --font-serif: 'Lora', 'Noto Serif SC', Georgia, serif;
+  --font-sans: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+  --font-music: 'Bravura', 'Noto Music', 'Segoe UI Symbol', serif;
+  
+  /* 终端 */
+  --terminal-bg: #0d1117;
+  --terminal-text: #c9d1d9;
+}
+
+/* 深色主题 */
+html.dark {
+  --bg-start: #0a0e1a;
+  --bg-end: #050810;
+  
+  --surface: rgba(20, 34, 62, 0.7);
+  --surface-solid: #162240;
+  --surface-hover: rgba(30, 45, 75, 0.85);
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --border: rgba(60, 90, 140, 0.35);
+  --border-solid: #334155;
+  --border-light: rgba(50, 75, 120, 0.25);
+  
+  --accent-gold: #d4a730;
+  --accent-green: #4ade80;
+  --accent-red: #f87171;
+  --accent-indigo: #818cf8;
+  --accent-amber: #fbbf24;
+  --accent-violet: #a78bfa;
+  --accent-cyan: #22d3ee;
+  
+  --staff-line: #475569;
+  --note-head: #f1f5f9;
+  --score-bg: rgba(15, 23, 42, 0.7);
+  --clef-color: #94a3b8;
+  
+  --glass-bg: rgba(20, 34, 62, 0.6);
+  --glass-border: rgba(80, 120, 180, 0.2);
+  --glass-shadow: 0 4px 24px rgba(0, 10, 30, 0.3);
+  
+  --terminal-bg: #0d1117;
+  --terminal-text: #c9d1d9;
+}
+
+/* ============================================================
+   基础样式
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* ============================================================
+   布局
+   ============================================================ */
+.sposobin-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.sposobin-main {
+  flex: 1;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .sposobin-main {
+    padding: 1.5rem;
+  }
+}
+
+/* ============================================================
+   毛玻璃
+   ============================================================ */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+html.dark .glass-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   头部
+   ============================================================ */
+.sposobin-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0.75rem 1rem;
+}
+
+html.dark .sposobin-header {
+  background: rgba(20, 34, 62, 0.7);
+}
+
+.sposobin-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   标题
+   ============================================================ */
+.app-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.version-badge {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: var(--accent-cyan-light);
+  color: var(--accent-cyan);
+  margin-left: 0.5rem;
+}
+
+/* ============================================================
+   分段控件
+   ============================================================ */
+.seg-control {
+  display: inline-flex;
+  background: var(--surface);
+  backdrop-filter: blur(8px);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  gap: 2px;
+  border: 1px solid var(--glass-border);
+}
+
+.seg-control input[type="radio"] {
+  display: none;
+}
+
+.seg-control label {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.seg-control input[type="radio"]:checked + label {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================================
+   首页按钮
+   ============================================================ */
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.home-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--accent-indigo);
+  transform: translateY(-1px);
+}
+
+html.dark .home-btn {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+html.dark .home-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   主题切换按钮
+   ============================================================ */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--surface-hover);
+  color: var(--accent-amber);
+  border-color: var(--accent-amber);
+  transform: rotate(15deg);
+}
+
+html.dark .theme-toggle-btn {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+html.dark .theme-toggle-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: var(--accent-amber);
+}
+
+/* ============================================================
+   选择器
+   ============================================================ */
+.modern-select {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.modern-select:hover {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 2px var(--accent-indigo-light);
+}
+
+/* ============================================================
+   按钮
+   ============================================================ */
+.modern-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.modern-btn-primary {
+  background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #f472b6 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.25);
+}
+
+.modern-btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3);
+}
+
+.modern-btn-success {
+  background: var(--accent-green);
+  color: white;
+}
+
+.modern-btn-success:hover {
+  background: #15803d;
+}
+
+.modern-btn-danger {
+  background: var(--accent-red);
+  color: white;
+}
+
+.modern-btn-danger:hover {
+  background: #b91c1c;
+}
+
+.modern-btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.modern-btn-outline:hover {
+  background: var(--accent-red-light);
+}
+
+/* ============================================================
+   五线谱区域
+   ============================================================ */
+.score-section {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .score-section {
+    padding: 1.25rem;
+  }
+}
+
+.score-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.score-btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.score-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--border-light);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.score-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--score-bg);
+  padding: 0.5rem;
+}
+
+/* ============================================================
+   钢琴面板
+   ============================================================ */
+.piano-panel {
+  margin-bottom: 1rem;
+}
+
+.piano-scroll-wrapper {
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+.piano-keys {
+  position: relative;
+  height: 120px;
+  min-width: 600px;
+}
+
+.piano-key-white {
+  position: absolute;
+  width: 28px;
+  height: 110px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(180, 200, 220, 0.5);
+  border-radius: 0 0 4px 4px;
+  cursor: pointer;
+  z-index: 1;
+  transition: background 0.08s;
+}
+
+.piano-key-white:hover {
+  background: rgba(200, 220, 250, 0.9);
+}
+
+.piano-key-white.active {
+  background: rgba(180, 200, 240, 0.95);
+}
+
+.piano-key-black {
+  position: absolute;
+  width: 18px;
+  height: 65px;
+  background: #1a2332;
+  border: 1px solid #0d1520;
+  border-radius: 0 0 3px 3px;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.08s;
+}
+
+.piano-key-black:hover {
+  background: #2a3a4a;
+}
+
+.piano-key-black.active {
+  background: #3a4a5a;
+}
+
+html.dark .piano-key-white {
+  background: rgba(220, 230, 240, 0.9);
+  border-color: rgba(80, 110, 150, 0.4);
+}
+
+html.dark .piano-key-black {
+  background: #0a1628;
+  border-color: #050d18;
+}
+
+/* ============================================================
+   和弦面板
+   ============================================================ */
+.chord-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .chord-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chord-panel-section {
+  padding: 1rem;
+}
+
+.chord-category-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.chord-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.chord-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.chord-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background: var(--surface-hover);
+}
+
+.chord-btn:active {
+  transform: scale(0.97);
+}
+
+.chord-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.chord-btn-tonic {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: var(--accent-gold-light);
+}
+
+.chord-btn-subdominant {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  background: var(--accent-green-light);
+}
+
+.chord-btn-dominant {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: var(--accent-red-light);
+}
+
+.chord-btn-chromatic {
+  border-color: var(--accent-indigo);
+  color: var(--accent-indigo);
+  background: var(--accent-indigo-light);
+}
+
+/* ============================================================
+   模态框
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.25s ease;
+}
+
+html.dark .modal-overlay {
+  background: rgba(0, 5, 20, 0.55);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* ============================================================
+   终端面板
+   ============================================================ */
+.terminal-panel {
+  background: var(--terminal-bg);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.terminal-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-dot-red { background: #ff5f56; }
+.terminal-dot-yellow { background: #ffbd2e; }
+.terminal-dot-green { background: #27c93f; }
+
+.terminal-title {
+  font-size: 0.75rem;
+  color: var(--terminal-text);
+  margin-left: 0.5rem;
+}
+
+.terminal-body {
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--terminal-text);
+  max-height: 400px;
+  overflow: auto;
+}
+
+.terminal-body pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ============================================================
+   主题切换
+   ============================================================ */
+.theme-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--border-solid);
+  cursor: pointer;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.theme-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface-solid);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+html.dark .theme-switch {
+  background: var(--accent-indigo);
+}
+
+html.dark .theme-switch::after {
+  transform: translateX(20px);
+}
+
+/* ============================================================
+   播放动画
+   ============================================================ */
+@keyframes playheadPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.playhead-active {
+  animation: playheadPulse 1s ease-in-out infinite;
+}
+
+/* ============================================================
+   极光背景
+   ============================================================ */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform;
+}
+
+html.dark .aurora-blob {
+  opacity: 0.25;
+}
+
+.aurora-blob-1 {
+  top: -10%;
+  left: -10%;
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0) 70%);
+  animation: aurora-drift-1 28s ease-in-out infinite;
+}
+
+.aurora-blob-2 {
+  top: 20%;
+  right: -15%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, #f472b6 0%, rgba(244, 114, 182, 0) 70%);
+  animation: aurora-drift-2 36s ease-in-out infinite;
+}
+
+.aurora-blob-3 {
+  bottom: -20%;
+  left: 20%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, #a78bfa 0%, rgba(167, 139, 250, 0) 70%);
+  animation: aurora-drift-3 24s ease-in-out infinite;
+}
+
+.aurora-blob-4 {
+  bottom: 10%;
+  right: 10%;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, #60a5fa 0%, rgba(96, 165, 250, 0) 70%);
+  animation: aurora-drift-4 32s ease-in-out infinite;
+}
+
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  33% { transform: translate(40vw, -20vh) scale(1.1); }
+  66% { transform: translate(-30vw, 30vh) scale(0.9); }
+}
+
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  33% { transform: translate(-30vw, 25vh) scale(1.15); }
+  66% { transform: translate(35vw, -30vh) scale(0.85); }
+}
+
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  50% { transform: translate(20vw, -25vh) scale(1.2); }
+}
+
+@keyframes aurora-drift-4 {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  50% { transform: translate(-25vw, 20vh) scale(0.9); }
+}
+
+/* ============================================================
+   减少动画偏好
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .aurora-blob {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .sposobin-header-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .seg-control {
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   工具类
+   ============================================================ */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.font-semibold { font-weight: 600; }
+
+/* ============================================================
+   现代和弦面板样式 (modern-chord-btn)
+   ============================================================ */
+
+/* 面板容器 */
+.modern-panel {
+  padding: 1rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.panel-header {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.chromatic-header {
+  color: var(--accent-indigo);
+}
+
+.chromatic-panel {
+  border-color: var(--accent-indigo-light);
+}
+
+/* 类别行 */
+.category-row {
+  margin-bottom: 0.75rem;
+}
+
+.cat-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.375rem;
+}
+
+/* 和弦网格 */
+.chord-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+/* 现代和弦按钮 */
+.modern-chord-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.25rem;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 6px;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.modern-chord-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent-indigo);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.modern-chord-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.modern-chord-btn.chromatic-btn {
+  border-color: var(--accent-indigo-light);
+  color: var(--accent-indigo);
+}
+
+.modern-chord-btn.chromatic-btn:hover {
+  border-color: var(--accent-indigo);
+  background: var(--accent-indigo-light);
+}
+
+/* 和弦徽章 */
+.chord-badge {
+  display: inline-flex;
+  align-items: flex-end;
+  font-family: 'Lora', 'Georgia', serif;
+  position: relative;
+  user-select: none;
+  gap: 1px;
+  line-height: 1;
+}
+
+/* 和弦主干 */
+.chord-core {
+  font-size: 18px;
+  font-weight: 500;
+  color: #0F172A;
+  letter-spacing: -0.5px;
+}
+
+/* 小调主干 */
+.chord-core.is-minor {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 18px;
+  color: #334155;
+  padding-right: 2px;
+  letter-spacing: -0.2px;
+}
+
+/* 度数下标 */
+.chord-degree-sub {
+  font-family: 'Lora', 'Georgia', serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1E293B;
+  align-self: flex-end;
+  margin-bottom: -4px;
+  margin-left: 1px;
+}
+
+/* 上标文字 */
+.chord-super {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+  align-self: flex-start;
+  margin-top: -4px;
+  margin-left: 1px;
+}
+
+/* 下标文字 */
+.chord-sub {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1E293B;
+  align-self: flex-end;
+  margin-bottom: -2px;
+  margin-left: 1px;
+}
+
+/* 堆叠数字 */
+.chord-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 0.9;
+  margin-left: 1.5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0F172A;
+}
+
+.stack-top { font-size: 12px; }
+.stack-bottom { font-size: 12px; }
+
+/* 副功能后缀 */
+.chord-secondary {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94A3B8;
+  margin-left: 2px;
+}
+
+html.dark .modern-chord-btn {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+html.dark .modern-chord-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+}
+
+/* 深色模式下和弦颜色 */
+html.dark .chord-core {
+  color: #ffffff;
+}
+
+html.dark .chord-core.is-minor {
+  color: #CBD5E1;
+}
+
+html.dark .chord-degree-sub {
+  color: #CBD5E1;
+}
+
+html.dark .chord-super {
+  color: #94A3B8;
+}
+
+html.dark .chord-sub {
+  color: #ffffff;
+}
+
+html.dark .chord-stack {
+  color: #ffffff;
+}
+
+html.dark .chord-secondary {
+  color: #64748B;
+}
+
+/* 五线谱容器 */
+.score-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--score-bg);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0;
+}
+
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

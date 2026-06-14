@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+env/
+venv/
+ENV/
+*.pyc
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+list_files.py
+run_list.py
+scan_project.py
+cleanup_temp.py
+_scan.py
+
+# Reference source directories (not for upload)
+src1/
+src2/
+src3/
+
+# Git
+.git/
+
+# Audio samples (too large)
+*.mp3
+*.wav
+*.ogg
