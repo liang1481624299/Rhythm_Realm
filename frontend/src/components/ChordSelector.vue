@@ -139,6 +139,7 @@ function parseChord(chordStr) {
   if (s.includes('不完全')) { superText = '不完全'; s = s.replace('不完全', ''); }
   if (s.includes('双三')) { superText = '双三'; s = s.replace('双三', ''); }
   if (s.includes('⁺⁶')) { superText = '+6'; s = s.replace('⁺⁶', ''); }
+  if (s.includes('⁶') && !s.includes('₆')) { superText = '⁶'; s = s.replace('⁶', ''); }
   
   if (s.includes('₆₄') || s.includes('64')) { topNum = '6'; bottomNum = '4'; }
   else if (s.includes('₅₆') || s.includes('56')) { topNum = '6'; bottomNum = '5'; }

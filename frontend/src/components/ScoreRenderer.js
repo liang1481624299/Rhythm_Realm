@@ -127,6 +127,7 @@ export function renderScore(store) {
     .clickable-node { cursor: pointer; }
     .clickable-node:hover .hover-bg { fill: ${isDark ? 'rgba(14, 165, 233, 0.15)' : 'rgba(14, 165, 233, 0.06)'}; }
     .playhead-line { stroke: #10B981; stroke-width: 2; stroke-dasharray: 4,2; }
+    .playhead-layer { pointer-events: none; }
     .ledger-line { stroke: ${noteColor}; stroke-width: 1.5; }
   `;
   svg.appendChild(style);
@@ -312,12 +313,12 @@ export function renderScore(store) {
       const clickableG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       clickableG.classList.add('clickable-node');
 
-      // 悬停背景
+      // 悬停背景 - 扩大点击区域，覆盖整个五线谱高度
       const hoverBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      hoverBg.setAttribute('x', '-25');
-      hoverBg.setAttribute('y', '-18');
-      hoverBg.setAttribute('width', '50');
-      hoverBg.setAttribute('height', '250');
+      hoverBg.setAttribute('x', '-30');
+      hoverBg.setAttribute('y', '-100');
+      hoverBg.setAttribute('width', '60');
+      hoverBg.setAttribute('height', '350');
       hoverBg.setAttribute('rx', '8');
       hoverBg.classList.add('hover-bg');
       clickableG.appendChild(hoverBg);
