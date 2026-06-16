@@ -4,6 +4,8 @@ import { createRouter } from './lib/router';
 import { renderHome } from './pages/Home';
 import { renderAbout } from './pages/About';
 import { renderSposobin } from './pages/Sposobin';
+import { renderGrading } from './pages/Grading';
+import { renderSolfege } from './pages/Solfege';
 import { initTheme, toggleTheme, isDarkMode, setupThemeSync } from './lib/theme';
 
 // 图标
@@ -81,6 +83,8 @@ function initApp() {
         <nav class="header-nav">
           <a href="#/" class="nav-link ${window.location.hash === '#/' || window.location.hash === '' ? 'nav-link-active' : ''}" data-nav>首页</a>
           <a href="#/sposobin" class="nav-link ${window.location.hash === '#/sposobin' ? 'nav-link-active' : ''}" data-nav>Sposobin</a>
+          <a href="#/solfege" class="nav-link ${window.location.hash === '#/solfege' ? 'nav-link-active' : ''}" data-nav>视唱练耳</a>
+          <a href="#/grading" class="nav-link ${window.location.hash === '#/grading' ? 'nav-link-active' : ''}" data-nav>批改</a>
           <a href="#/about" class="nav-link ${window.location.hash === '#/about' ? 'nav-link-active' : ''}" data-nav>关于</a>
         </nav>
 
@@ -117,6 +121,8 @@ function initApp() {
     .add('/', ({ container }) => renderHome(container))
     .add('/about', ({ container }) => renderAbout(container))
     .add('/sposobin', renderSposobin)
+    .add('/solfege', renderSolfege)
+    .add('/grading', ({ container }) => renderGrading(container))
     .setFallback(renderNotFound);
 
   renderHeader();

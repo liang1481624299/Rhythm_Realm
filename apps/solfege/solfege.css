@@ -1,0 +1,45 @@
+/* Solfege - ear training for GNOME
+  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2006, 2013  Tom Cato Amundsen
+  License is GPL, see file COPYING
+*/
+
+
+#ProgressionNameLabel, #Feedback {
+  font: 20px Sans;
+}
+#ProgressionLabelNumber { font: 9px Sans }
+#BoldText { font: 12px Sans Bold }
+
+#StatisticsH1, #Heading1 { font: 18px Sans }
+#StatisticsH2, #Heading2 { font: 14px Sans }
+
+#BpmInactiveLabel { font: 12px Sans }
+#BpmActiveLabel { font: 12px Sans Bold }
+
+#DIALOGWARNING2 { background: red; }
+#DIALOGWARNING  { background: yellow; }
+
+#DEBUGWARNING {
+  background: red;
+  font: 24px Sans Bold;
+}
+
+#FlashBarLabel { font: 16px Sans }
+
+#IntervalButtonsWidget GtkButton
+ {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+#intervalToggleButton {
+	padding: 2px;
+}
+
+/* toneincontext */
+#wlabelred { background: red; font-size: small}
+#wlabelyellow { background: yellow; font-size: small}
+#wlabelgreen { background: lightgreen; font-size:small}
+#labelred { background: red}
+#labelyellow { background: yellow}
+#labelgreen { background: lightgreen}
+#labelgreyout{ background: gray; color: gray }

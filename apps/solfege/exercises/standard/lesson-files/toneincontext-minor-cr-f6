@@ -1,0 +1,9 @@
+# GNU Solfege
+# Copyright (C) 2011, 2016 Tom Cato Amundsen
+
+header {
+    module=toneincontext
+    title = _("First 6 tones")
+    tones = 0, 1, 2, 3, 4, 5
+    cadence = "minor"
+}

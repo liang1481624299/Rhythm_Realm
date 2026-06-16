@@ -28,6 +28,10 @@ export function renderHome(container) {
             <span>进入 Sposobin</span>
             ${icons.chevronRight(16)}
           </a>
+          <a href="#/solfege" class="btn-secondary" data-nav>
+            ${icons.music(16)}
+            <span>视唱练耳</span>
+          </a>
           <button type="button" class="btn-secondary" data-action="scroll-cards">
             ${icons.sparkles(16)}
             <span>探索功能</span>
@@ -62,9 +66,19 @@ export function renderHome(container) {
           color: 'cyan',
         })}
         ${featureCard({
+          title: '拍照批改',
+          desc: '上传手写作业照片，AI 根据斯波索宾规则库自动评分，多维诊断与个性化建议。',
+          color: 'orange',
+        })}
+        ${featureCard({
           title: '极光视觉',
           desc: '动态渐变极光背景，毛玻璃质感面板，极光美学与功能完美融合。',
           color: 'pink',
+        })}
+        ${featureCard({
+          title: '视唱练耳',
+          desc: '音程识别、和弦训练、旋律听写、节奏训练，全面提升音乐听觉能力。',
+          color: 'green',
         })}
       </div>
 

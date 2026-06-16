@@ -18,6 +18,48 @@ const EXTRA_BAR_SPACING = 12;
 const SVG_HEIGHT = 300;
 const GROUP_OFFSET_Y = 25;
 
+// 音符符头映射（支持节奏类型）
+const NOTE_HEADS = {
+  whole: '\uE0A2',      // 全音符（空心符头）
+  half: '\uE0A3',       // 二分音符（空心符头）
+  quarter: '\uE0A4',    // 四分音符（实心符头）
+  eighth: '\uE0A4',     // 八分音符（实心符头）
+  sixteenth: '\uE0A4',  // 十六分音符（实心符头）
+  thirtySecond: '\uE0A4', // 三十二分音符（实心符头）
+  sixtyFourth: '\uE0A4',  // 六十四分音符（实心符头）
+  // 附点音符
+  halfDot: '\uE0A3',
+  quarterDot: '\uE0A4',
+  eighthDot: '\uE0A4',
+  sixteenthDot: '\uE0A4',
+  thirtySecondDot: '\uE0A4',
+  // 附附点音符
+  halfDoubleDot: '\uE0A3',
+  quarterDoubleDot: '\uE0A4',
+  eighthDoubleDot: '\uE0A4',
+  sixteenthDoubleDot: '\uE0A4',
+  // 休止符
+  restWhole: '\uE4E3',
+  restHalf: '\uE4E4',
+  restQuarter: '\uE4E5',
+  restEighth: '\uE4E6',
+  restSixteenth: '\uE4E7',
+  restThirtySecond: '\uE4E8',
+};
+
+// 符尾数量映射
+const FLAG_COUNT = {
+  eighth: 1,
+  eighthDot: 1,
+  eighthDoubleDot: 1,
+  sixteenth: 2,
+  sixteenthDot: 2,
+  sixteenthDoubleDot: 2,
+  thirtySecond: 3,
+  thirtySecondDot: 3,
+  sixtyFourth: 4,
+};
+
 /**
  * 创建五线谱渲染容器
  */
@@ -129,6 +171,9 @@ export function renderScore(store) {
     .playhead-line { stroke: #10B981; stroke-width: 2; stroke-dasharray: 4,2; }
     .playhead-layer { pointer-events: none; }
     .ledger-line { stroke: ${noteColor}; stroke-width: 1.5; }
+    .stem { stroke: ${noteColor}; stroke-width: 1.6; }
+    .flag { fill: ${noteColor}; }
+    .dot { fill: ${noteColor}; }
   `;
   svg.appendChild(style);
 
@@ -342,58 +387,129 @@ export function renderScore(store) {
       nodeG.appendChild(clickableG);
     }
 
+    // 获取当前和弦的节奏信息
+    const rhythmKey = store.history?.[index]?.rhythm?.key || 'quarter';
+    const isRest = store.history?.[index]?.rhythm?.isRest;
+    const noteHeadChar = NOTE_HEADS[rhythmKey] || '\uE0A4';
+    const flagCount = FLAG_COUNT[rhythmKey] || 0;
+    const hasDot = rhythmKey.includes('Dot') && !rhythmKey.includes('DoubleDot');
+    const hasDoubleDot = rhythmKey.includes('DoubleDot');
+
     // 音符
     node.notes?.forEach(note => {
       const noteG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-      // 符头 - 直接设置 fill 属性
-      const noteHead = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      noteHead.setAttribute('x', String(note.x));
-      noteHead.setAttribute('y', String(note.y));
-      noteHead.classList.add('bravura-text');
-      noteHead.setAttribute('font-size', '48');
-      noteHead.setAttribute('dy', '0');
-      noteHead.setAttribute('fill', getNodeColor(node.type));
-      noteHead.textContent = '\uE0A4';
-      noteG.appendChild(noteHead);
+      // 休止符
+      if (isRest) {
+        const restHead = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        restHead.setAttribute('x', String(note.x));
+        restHead.setAttribute('y', String(note.y));
+        restHead.classList.add('bravura-text');
+        restHead.setAttribute('font-size', '48');
+        restHead.setAttribute('dy', '0');
+        restHead.setAttribute('fill', getNodeColor(node.type));
+        restHead.textContent = noteHeadChar;
+        noteG.appendChild(restHead);
+      } else {
+        // 符头 - 根据节奏类型选择不同的符头
+        const noteHead = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        noteHead.setAttribute('x', String(note.x));
+        noteHead.setAttribute('y', String(note.y));
+        noteHead.classList.add('bravura-text');
+        noteHead.setAttribute('font-size', '48');
+        noteHead.setAttribute('dy', '0');
+        noteHead.setAttribute('fill', getNodeColor(node.type));
+        noteHead.textContent = noteHeadChar;
+        noteG.appendChild(noteHead);
 
-      // 符干
-      const isUpper = note.v === 'S' || note.v === 'T';
-      const stemX = note.x + (isUpper ? 6.5 : -6.5);
-      const stemY2 = isUpper ? note.y - 26 : note.y + 26;
-      const stem = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      stem.setAttribute('x1', String(stemX));
-      stem.setAttribute('y1', String(note.y));
-      stem.setAttribute('x2', String(stemX));
-      stem.setAttribute('y2', String(stemY2));
-      stem.setAttribute('stroke', getNodeColor(node.type));
-      stem.setAttribute('stroke-width', '1.6');
-      noteG.appendChild(stem);
+        // 符干 - 全音符和二分音符不需要符干
+        if (!rhythmKey.startsWith('whole') && !rhythmKey.startsWith('half')) {
+          const isUpper = note.v === 'S' || note.v === 'T';
+          const stemX = note.x + (isUpper ? 6.5 : -6.5);
+          const stemLength = 26 + flagCount * 6;
+          const stemY2 = isUpper ? note.y - stemLength : note.y + stemLength;
+          const stem = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          stem.setAttribute('x1', String(stemX));
+          stem.setAttribute('y1', String(note.y));
+          stem.setAttribute('x2', String(stemX));
+          stem.setAttribute('y2', String(stemY2));
+          stem.setAttribute('stroke', getNodeColor(node.type));
+          stem.setAttribute('stroke-width', '1.6');
+          stem.classList.add('stem');
+          noteG.appendChild(stem);
 
-      // 临时升降号
-      if (note.acc) {
-        const accText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        accText.setAttribute('x', String(note.acc_x));
-        accText.setAttribute('y', String(note.y));
-        accText.classList.add('bravura-text');
-        accText.setAttribute('font-size', '32');
-        accText.setAttribute('dy', '1');
-        accText.setAttribute('fill', noteColor);
-        accText.textContent = getSMuFLChar(note.acc);
-        noteG.appendChild(accText);
+          // 符尾
+          if (flagCount > 0) {
+            const flagY = isUpper ? stemY2 : stemY2;
+            for (let i = 0; i < flagCount; i++) {
+              const flag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              flag.setAttribute('x', String(stemX + (isUpper ? 2 : -2)));
+              flag.setAttribute('y', String(flagY + i * 8 * (isUpper ? 1 : -1)));
+              flag.classList.add('bravura-text');
+              flag.setAttribute('font-size', '24');
+              flag.setAttribute('fill', getNodeColor(node.type));
+              flag.textContent = isUpper ? '\uE240' : '\uE241'; // 向上/向下符尾
+              noteG.appendChild(flag);
+            }
+          }
+        }
+
+        // 附点
+        if (hasDot) {
+          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('cx', String(note.x + 14));
+          dot.setAttribute('cy', String(note.y - 4));
+          dot.setAttribute('r', '3');
+          dot.setAttribute('fill', getNodeColor(node.type));
+          dot.classList.add('dot');
+          noteG.appendChild(dot);
+        }
+
+        // 附附点
+        if (hasDoubleDot) {
+          const dot1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot1.setAttribute('cx', String(note.x + 14));
+          dot1.setAttribute('cy', String(note.y - 4));
+          dot1.setAttribute('r', '3');
+          dot1.setAttribute('fill', getNodeColor(node.type));
+          dot1.classList.add('dot');
+          noteG.appendChild(dot1);
+
+          const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot2.setAttribute('cx', String(note.x + 20));
+          dot2.setAttribute('cy', String(note.y));
+          dot2.setAttribute('r', '2.5');
+          dot2.setAttribute('fill', getNodeColor(node.type));
+          dot2.classList.add('dot');
+          noteG.appendChild(dot2);
+        }
+
+        // 临时升降号
+        if (note.acc) {
+          const accText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          accText.setAttribute('x', String(note.acc_x));
+          accText.setAttribute('y', String(note.y));
+          accText.classList.add('bravura-text');
+          accText.setAttribute('font-size', '32');
+          accText.setAttribute('dy', '1');
+          accText.setAttribute('fill', noteColor);
+          accText.textContent = getSMuFLChar(note.acc);
+          noteG.appendChild(accText);
+        }
+
+        // 加线
+        note.ledgers?.forEach(ly => {
+          const ledger = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          ledger.setAttribute('x1', String(note.x - 12));
+          ledger.setAttribute('y1', String(ly));
+          ledger.setAttribute('x2', String(note.x + 12));
+          ledger.setAttribute('y2', String(ly));
+          ledger.setAttribute('stroke', noteColor);
+          ledger.setAttribute('stroke-width', '1.5');
+          ledger.classList.add('ledger-line');
+          noteG.appendChild(ledger);
+        });
       }
-
-      // 加线
-      note.ledgers?.forEach(ly => {
-        const ledger = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        ledger.setAttribute('x1', String(note.x - 12));
-        ledger.setAttribute('y1', String(ly));
-        ledger.setAttribute('x2', String(note.x + 12));
-        ledger.setAttribute('y2', String(ly));
-        ledger.setAttribute('stroke', noteColor);
-        ledger.setAttribute('stroke-width', '1.5');
-        noteG.appendChild(ledger);
-      });
 
       nodeG.appendChild(noteG);
     });

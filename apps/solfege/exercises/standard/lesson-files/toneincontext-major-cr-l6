@@ -1,0 +1,8 @@
+﻿# GNU Solfege
+# Copyright (C) 2011, 2016 Tom Cato Amundsen
+
+header {
+    module=toneincontext
+    title = _("Last 6 tones")
+    tones = 6, 7, 8, 9, 10, 11, 12
+}

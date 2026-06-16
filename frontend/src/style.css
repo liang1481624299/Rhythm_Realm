@@ -5,6 +5,20 @@
   color-scheme: light dark;
   --bg-light: #f6f7fb;
   --bg-dark: #0a0e1a;
+
+  /* 【修复 1·文字配色】三层文字色值变量（仅改色，不动布局/字号/行高） */
+  /* 浅色模式：使用深色文字以保证在亮蓝渐变背景上高对比 */
+  --text-title:   #0f172a;   /* 主标题文字 */
+  --text-body:    #334155;   /* 普通说明文字 */
+  --text-muted:   #64748b;   /* 辅助小字 / 标签 */
+  --text-on-gradient: #0f172a; /* 蓝渐变背景上的兜底深色文字 */
+}
+html.dark {
+  /* 深色模式：使用浅色文字以保证在深色背景上高对比 */
+  --text-title:   #f1f5f9;
+  --text-body:    #cbd5e1;
+  --text-muted:   #94a3b8;
+  --text-on-gradient: #f8fafc;
 }
 
 html,
@@ -26,7 +40,7 @@ body {
     'Noto Sans CJK SC',
     sans-serif;
   background-color: var(--bg-light);
-  color: #0f172a;
+  color: var(--text-title);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -35,11 +49,14 @@ body {
     color 400ms ease;
   margin: 0;
   padding: 0;
+  /* 【修复 2·同类型排查】全局中文不挤压、不粘连 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 html.dark body {
   background-color: var(--bg-dark);
-  color: #e2e8f0;
+  color: var(--text-title);
 }
 
 /* 滚动条 */
@@ -475,16 +492,25 @@ html.dark .nav-link-active {
   align-items: center;
   gap: 0.625rem;
   text-decoration: none;
-  color: #0f172a;
+  color: var(--text-title);
   font-weight: 700;
   font-size: 1.25rem;
   transition: opacity 0.2s;
+  /* 【修复 2·标题挤压】防止「徵羽乐界」文字与 emoji 粘连、字符换行重叠 */
+  white-space: nowrap;
+  word-break: keep-all;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.header-brand > span:last-child {
+  /* 中文标题与 emoji 之间加可呼吸间距，杜绝挤压 */
+  padding-left: 0.25rem;
 }
 .header-brand:hover {
   opacity: 0.8;
 }
 html.dark .header-brand {
-  color: #f1f5f9;
+  color: var(--text-title);
 }
 
 .header-nav {
@@ -552,4 +578,494 @@ html.dark .theme-toggle-btn:hover {
 .card-blue {
   background: linear-gradient(135deg, rgba(96, 165, 250, 0.3) 0%, rgba(96, 165, 250, 0.1) 100%);
   border-color: rgba(96, 165, 250, 0.4);
+}
+.card-green {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.card-orange {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.3) 0%, rgba(251, 146, 60, 0.1) 100%);
+  border-color: rgba(251, 146, 60, 0.4);
+}
+
+/* ============================================================
+   Solfege 页面样式
+   ============================================================ */
+.solfege-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 4rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+}
+html.dark .solfege-header {
+  background: rgba(20, 25, 45, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.solfege-header-inner {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.solfege-main {
+  position: relative;
+  z-index: 10;
+  padding-top: 5rem;
+  min-height: 100vh;
+}
+
+.solfege-container {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .solfege-container {
+    padding: 0 1.5rem;
+  }
+}
+
+.solfege-container .glass-card {
+  margin-bottom: 1rem;
+}
+
+.intro-card {
+  padding: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .intro-card {
+    padding: 2rem;
+  }
+}
+
+.stats-row {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+html.dark .stat-label {
+  color: var(--text-muted);
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-title);
+  margin: 1.5rem 0 1rem;
+}
+html.dark .section-title {
+  color: var(--text-title);
+}
+
+.exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .exercise-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.exercise-card {
+  padding: 1.25rem;
+}
+
+.back-card {
+  padding: 0.5rem 1rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-body);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  /* 【修复 2·同类型排查】返回按钮文字不挤压、不粘连 */
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.back-btn:hover {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--text-title);
+}
+
+html.dark .back-btn:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-title);
+}
+
+.exercise-header {
+  padding: 1.5rem;
+}
+
+.stats-card {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-around;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-top: 0.25rem;
+}
+
+html.dark .stat-value {
+  color: var(--text-title);
+}
+
+.play-card {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #f472b6 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.25);
+}
+
+.play-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3);
+}
+
+.feedback {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+.feedback.correct {
+  opacity: 1;
+  color: #10b981;
+}
+
+.feedback.wrong {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.answer-card {
+  padding: 1.5rem;
+}
+
+.interval-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .interval-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.interval-btn {
+  padding: 0.75rem 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+html.dark .interval-btn {
+  background: rgba(51, 65, 85, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.interval-btn:hover {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: rgba(34, 211, 238, 0.3);
+}
+
+.interval-abbr {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+html.dark .interval-abbr {
+  color: var(--text-title);
+}
+
+.interval-name {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+html.dark .interval-name {
+  color: var(--text-muted);
+}
+
+.chord-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .chord-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.chord-btn {
+  padding: 0.75rem 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+html.dark .chord-btn {
+  background: rgba(51, 65, 85, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.chord-btn:hover {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.chord-abbr {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+html.dark .chord-abbr {
+  color: var(--text-title);
+}
+
+.chord-name {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+html.dark .chord-name {
+  color: var(--text-muted);
+}
+
+.rhythm-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .rhythm-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.rhythm-btn {
+  padding: 0.75rem 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+html.dark .rhythm-btn {
+  background: rgba(51, 65, 85, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.rhythm-btn:hover {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.rhythm-index {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.rhythm-pattern {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+}
+
+/* ============================================================
+   【修复 2·同类型排查】Solfege 页面 .app-title / .version-badge 兜底
+   （sposobin.css 仅在 Sposobin 页面引入，Solfege 页面复用同名 class 时无样式会塌陷）
+   ============================================================ */
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-title);
+  margin: 0;
+  /* 防挤压：标题与版本徽章同行不粘连、不换行重叠 */
+  white-space: nowrap;
+  word-break: keep-all;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+html.dark .app-title {
+  color: var(--text-title);
+}
+
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(34, 211, 238, 0.15);
+  color: #0891b2;
+  /* 与主标题之间留呼吸距离 */
+  margin-left: 0.25rem;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+html.dark .version-badge {
+  background: rgba(34, 211, 238, 0.2);
+  color: #67e8f9;
+}
+
+/* ============================================================
+   【修复 1·文字配色】Solfege 页面内联 Tailwind 类降级样式
+   （项目未安装 Tailwind，下述 class 不生效；用元素选择器兜底保证对比度）
+   ============================================================ */
+.intro-card h2,
+.exercise-header h3,
+.exercise-card h4,
+.feedback {
+  color: var(--text-title);
+}
+.intro-card p,
+.exercise-header p,
+.exercise-card p,
+.empty-state p,
+.empty-state .text-slate-600,
+.text-slate-600 {
+  color: var(--text-body);
+}
+.intro-card .text-slate-300,
+.text-slate-300 {
+  color: var(--text-body);
+}
+.intro-card .text-slate-400,
+.text-slate-400,
+.text-slate-500,
+.text-slate-600 {
+  color: var(--text-muted);
+}
+.text-slate-900,
+.dark\:text-white {
+  color: var(--text-title);
+}
+html.dark .text-slate-900,
+html.dark .dark\:text-white {
+  color: var(--text-title);
+}
+html.dark .text-slate-600,
+html.dark .text-slate-300 {
+  color: var(--text-body);
+}
+html.dark .text-slate-400 {
+  color: var(--text-muted);
+}
+
+/* 训练卡片上的小标签 (e.g. 旋律音程 / 和声音程) */
+.exercise-card span {
+  color: var(--text-muted);
+}
+html.dark .exercise-card span {
+  color: var(--text-muted);
+}
+
+/* 极光渐变文字兜底：在浅色蓝渐变上仍能读 */
+.aurora-text,
+.intro-card .aurora-text {
+  /* 极光渐变保留视觉，但确保 Webkit 不可用时仍有前景色 */
+  -webkit-text-fill-color: transparent;
+  color: #0e7490;
+  background: linear-gradient(
+    100deg,
+    #0891b2 0%,
+    #7c3aed 35%,
+    #db2777 70%,
+    #c2410c 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: aurora-shimmer 8s ease-in-out infinite;
+}
+html.dark .aurora-text,
+html.dark .intro-card .aurora-text {
+  color: #67e8f9;
 }

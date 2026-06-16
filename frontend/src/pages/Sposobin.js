@@ -1,9 +1,12 @@
 // Sposobin 页面 - 直接渲染，不使用 iframe
 import * as Tone from 'tone';
 import '../sposobin.css';
+import '../rhythm.css';
 import { createScoreRenderer, renderScore } from '../components/ScoreRenderer.js';
 import { createPianoPanel, updatePianoPanelVisibility } from '../components/PianoPanel.js';
 import { createChordPanel, updateChordPanel } from '../components/ChordPanel.js';
+import { createRhythmSelector } from '../components/RhythmSelector.js';
+import { getRhythmDuration } from '../audio/player.js';
 import { isDarkMode, toggleTheme } from '../lib/theme.js';
 
 // 简化的 Store 实现
@@ -17,7 +20,7 @@ const store = {
   renderData: { sigs: [], nodes: [] },
   categories: { diatonic: {}, chromatic: {} },
   playbackIndex: null,
-  timbre: 'piano',
+  currentRhythm: 'quarter',
 
   _subscribers: [],
   _isPlaying: false,
@@ -109,15 +112,6 @@ const store = {
     this.sync();
   },
 
-  setTimbre(timbre) {
-    this.timbre = timbre;
-  },
-
-  setTimeSignature(ts) {
-    this.time_signature = ts;
-    this.resetState();
-  },
-
   stopSequence() {
     this._playbackTimeouts.forEach(clearTimeout);
     this._playbackTimeouts = [];
@@ -126,14 +120,19 @@ const store = {
   }
 };
 
-// 音频播放
+// 音频播放 - 仅使用钢琴音色
 let mainLimiter = null;
 let globalSynth = null;
-let currentTimbre = 'piano';
 
-const timbreConfigs = {
-  piano: {
-    type: 'sampler',
+async function initAudioEngine() {
+  if (!mainLimiter) mainLimiter = new Tone.Limiter(-1).toDestination();
+
+  if (globalSynth) {
+    globalSynth.dispose();
+    globalSynth = null;
+  }
+
+  globalSynth = new Tone.Sampler({
     urls: {
       "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3",
       "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3",
@@ -144,57 +143,8 @@ const timbreConfigs = {
     baseUrl: "/audio/salamander/",
     release: 1.5,
     volume: -2
-  },
-  strings: {
-    type: 'polySynth',
-    oscillator: { type: 'sawtooth' },
-    envelope: { attack: 0.2, decay: 0.3, sustain: 0.8, release: 2 },
-    volume: -8
-  },
-  synth: {
-    type: 'polySynth',
-    oscillator: { type: 'square' },
-    envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 0.8 },
-    volume: -6
-  },
-  organ: {
-    type: 'polySynth',
-    oscillator: { type: 'triangle' },
-    envelope: { attack: 0.01, decay: 0.1, sustain: 0.9, release: 0.5 },
-    volume: -6
-  }
-};
-
-async function initAudioEngine() {
-  if (!mainLimiter) mainLimiter = new Tone.Limiter(-1).toDestination();
-
-  if (globalSynth) {
-    globalSynth.dispose();
-    globalSynth = null;
-  }
-
-  const config = timbreConfigs[currentTimbre] || timbreConfigs.piano;
-
-  if (config.type === 'sampler') {
-    globalSynth = new Tone.Sampler({
-      urls: config.urls,
-      baseUrl: config.baseUrl,
-      release: config.release,
-      volume: config.volume
-    }).connect(mainLimiter);
-    await Tone.loaded();
-  } else {
-    globalSynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: config.oscillator,
-      envelope: config.envelope,
-      volume: config.volume
-    }).connect(mainLimiter);
-  }
-}
-
-async function changeTimbre(timbre) {
-  currentTimbre = timbre;
-  await initAudioEngine();
+  }).connect(mainLimiter);
+  await Tone.loaded();
 }
 
 async function playSingleChord(voices) {
@@ -297,6 +247,11 @@ export function renderSposobin({ container }) {
           <label for="mode-compose">旋律写作</label>
         </div>
 
+        <button class="grading-btn desktop-only" id="grading-btn" title="拍照批改">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          <span>批改</span>
+        </button>
+
         <div class="flex items-center gap-3">
           <select class="modern-select desktop-only" id="key-select">
             ${KEY_OPTIONS.map(k => `<option value="${k}">${k}</option>`).join('')}
@@ -306,13 +261,6 @@ export function renderSposobin({ container }) {
             <option value="4/4">4/4</option>
             <option value="3/4">3/4</option>
             <option value="2/4">2/4</option>
-          </select>
-
-          <select class="modern-select desktop-only" id="timbre-select">
-            <option value="piano">🎹 钢琴</option>
-            <option value="strings">🎻 弦乐</option>
-            <option value="synth">🎛️ 合成器</option>
-            <option value="organ">🎸 风琴</option>
           </select>
 
           <button class="theme-toggle-btn" id="sposobin-theme-toggle" title="切换主题">
@@ -348,10 +296,9 @@ export function renderSposobin({ container }) {
       store.resetState();
     });
 
-    // 绑定音色切换事件
-    headerEl.querySelector('#timbre-select')?.addEventListener('change', (e) => {
-      store.setTimbre(e.target.value);
-      changeTimbre(e.target.value);
+    // 绑定批改按钮事件
+    headerEl.querySelector('#grading-btn')?.addEventListener('click', () => {
+      window.location.hash = '#/grading';
     });
 
     // 更新 UI 状态
@@ -363,9 +310,6 @@ export function renderSposobin({ container }) {
 
     const timesigSelect = headerEl.querySelector('#timesig-select');
     if (timesigSelect) timesigSelect.value = store.time_signature;
-
-    const timbreSelect = headerEl.querySelector('#timbre-select');
-    if (timbreSelect) timbreSelect.value = store.timbre;
   }
 
   // 主内容
@@ -373,15 +317,18 @@ export function renderSposobin({ container }) {
     <div id="piano-container"></div>
     <div id="score-container"></div>
     <div id="chord-container"></div>
+    <div id="rhythm-container"></div>
   `;
 
   const pianoContainer = mainEl.querySelector('#piano-container');
   const scoreContainerEl = mainEl.querySelector('#score-container');
   const chordContainer = mainEl.querySelector('#chord-container');
+  const rhythmContainer = mainEl.querySelector('#rhythm-container');
 
   pianoContainer.appendChild(createPianoPanel(store));
   scoreContainerEl.appendChild(createScoreRenderer(store));
   chordContainer.appendChild(createChordPanel(store));
+  rhythmContainer.appendChild(createRhythmSelector(store));
 
   renderHeader();
 
@@ -412,6 +359,11 @@ export function renderSposobin({ container }) {
   // 初始同步
   store.sync();
 
+  // 判断是否为休止符
+  function isRest(item) {
+    return item && item.rhythm && item.rhythm.isRest;
+  }
+
   // 导出到全局（供其他组件使用）
   window.sposobinStore = store;
   window.sposobinAudio = {
@@ -430,7 +382,7 @@ export function renderSposobin({ container }) {
       await Tone.loaded();
 
       store._isPlaying = true;
-      const intervalMs = 1000;
+      const baseIntervalMs = 1000;
       let currentIndex = 0;
 
       function playStep() {
@@ -445,13 +397,19 @@ export function renderSposobin({ container }) {
         renderScore(store);
 
         const item = store.history[currentIndex];
-        const notes = Object.values(item.voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
+        const rhythmKey = item.rhythm?.key || 'quarter';
+        const duration = getRhythmDuration(rhythmKey);
+        const currentIntervalMs = duration * baseIntervalMs;
 
-        if (globalSynth) {
-          globalSynth.release = 0.05;
-          globalSynth.releaseAll();
-          globalSynth.release = 1.5;
-          globalSynth.triggerAttack(notes);
+        if (!isRest(item)) {
+          const notes = Object.values(item.voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
+
+          if (globalSynth) {
+            globalSynth.release = 0.05;
+            globalSynth.releaseAll();
+            globalSynth.release = Math.min(duration * 0.8, 1.5);
+            globalSynth.triggerAttack(notes);
+          }
         }
 
         currentIndex++;
@@ -464,10 +422,10 @@ export function renderSposobin({ container }) {
             store.playbackIndex = null;
             store._isPlaying = false;
             renderScore(store);
-          }, intervalMs * 2.5);
+          }, currentIntervalMs * 2.5);
           store._playbackTimeouts.push(tLast);
         } else {
-          const tNext = setTimeout(playStep, intervalMs);
+          const tNext = setTimeout(playStep, currentIntervalMs);
           store._playbackTimeouts.push(tNext);
         }
       }

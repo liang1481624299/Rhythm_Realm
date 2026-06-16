@@ -11,3 +11,18 @@ numpy>=1.24.0
 
 # XML 处理 (MusicXML 导出)
 # 标准库已包含 xml.etree.ElementTree
+
+# 图像处理
+Pillow>=10.0.0
+
+# 文件上传
+python-multipart>=0.0.6
+
+# OCR 识别 (可选，需要额外配置)
+# paddlepaddle>=2.6.0
+# paddleocr>=2.7.0
+
+# 拍照批改依赖
+paddlepaddle>=2.6.0
+paddleocr>=2.7.0
+opencv-python>=4.8.0

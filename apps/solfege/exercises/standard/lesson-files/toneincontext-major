@@ -1,0 +1,8 @@
+# GNU Solfege
+# Copyright (C) 2011, 2016 Tom Cato Amundsen
+
+header {
+    module=toneincontext
+    title = _("All")
+    tones = 0, 2, 4, 5, 7, 9, 11, 12
+}

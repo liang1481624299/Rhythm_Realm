@@ -558,10 +558,9 @@ def sync_state(req: EngineRequest):
                         if evaluate_voicing(last_v, nxt_v, last_c, nxt_c, key_info) < 999999:
                             next_chords.append(nxt_c); break
 
-    folded_next_chords = set()
-    for chord in next_chords:
-        folded_next_chords.add(get_base_chord(chord))
-    next_chords = list(folded_next_chords)
+    # 移除折叠逻辑，保留所有和弦变体供前端显示
+    # 不再将 T不完全、T双三等变体折叠为基础和弦
+
 
     is_dead_end = False
     if len(req.history) > 0 and not is_completed and not debug_msg:
@@ -760,3 +759,90 @@ def export_musicxml(req: EngineRequest):
     
     final_xml_content = musicxml_header + pretty_xml
     return {"xml": final_xml_content}
+
+
+# ==========================================
+# 拍照批改 API
+# ==========================================
+from grading import grade_chord_sequence, parse_chord_sequence, normalize_chord_name, recognize_harmony_marks, recognize_staff_notes
+
+class ManualGradingRequest(BaseModel):
+    key_name: str
+    chord_sequence: List[str]
+
+class PhotoGradingRequest(BaseModel):
+    image_data: str  # base64 编码的图片
+    key_name: str
+
+@app.post("/api/grade/manual")
+def grade_manual(req: ManualGradingRequest):
+    """
+    手动输入和弦序列进行批改
+    """
+    # 解析和弦序列
+    chords = []
+    for item in req.chord_sequence:
+        normalized = normalize_chord_name(item)
+        chords.append(normalized)
+    
+    result = grade_chord_sequence(chords, req.key_name)
+    return result
+
+@app.post("/api/grade/photo")
+def grade_photo(req: PhotoGradingRequest):
+    """
+    拍照上传图片进行批改
+    1. 使用 paddleOCR 识别图片中的手写和声标记
+    2. 使用 OpenCV 识别五线谱音符
+    3. 调用规则引擎进行评分
+    """
+    # 第一步：使用 OCR 识别和声标记
+    ocr_result = recognize_harmony_marks(req.image_data)
+    
+    # 第二步：识别五线谱音符
+    staff_result = recognize_staff_notes(req.image_data)
+    
+    # 构建识别信息
+    recognition_info = {
+        "ocr": ocr_result,
+        "staff": staff_result
+    }
+    
+    # 如果 OCR 没有成功识别，返回错误信息
+    if not ocr_result.get("success", False):
+        return {
+            "error": ocr_result.get("error", "OCR识别失败"),
+            "recognition_info": recognition_info
+        }
+    
+    # 获取识别出的和弦序列
+    chord_sequence = ocr_result.get("chord_sequence", [])
+    
+    if not chord_sequence:
+        return {
+            "error": "未能从图片中识别出和弦序列",
+            "recognition_info": recognition_info
+        }
+    
+    # 第三步：对识别出的和弦序列进行评分
+    result = grade_chord_sequence(chord_sequence, req.key_name)
+    result["recognition_info"] = recognition_info
+    
+    return result
+
+@app.get("/api/grade/chord_aliases")
+def get_chord_aliases():
+    """
+    获取和弦别名列表，用于前端显示
+    """
+    return {
+        "aliases": {
+            "T": ["T", "主", "T主"],
+            "t": ["t", "小t", "主小"],
+            "S": ["S", "下属", "四"],
+            "s": ["s", "小下属", "小四"],
+            "D": ["D", "属", "五"],
+            "D7": ["D7", "D₇", "属七", "七"],
+            "K64": ["K64", "K₆₄", "终止四六", "K四六"]
+        }
+    }

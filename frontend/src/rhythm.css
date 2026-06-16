@@ -1,0 +1,389 @@
+/* 节奏选择器样式 */
+.rhythm-selector {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .rhythm-selector {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 音色选择器样式 */
+.timbre-selector {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .timbre-selector {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.timbre-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .timbre-title {
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.timbre-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timbre-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  padding: 6px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dark .timbre-btn {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.timbre-btn:hover {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  transform: translateY(-2px);
+}
+
+.dark .timbre-btn:hover {
+  background: #334155;
+}
+
+.timbre-btn.active {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.timbre-btn.active .timbre-icon,
+.timbre-btn.active .timbre-name {
+  color: #ffffff;
+}
+
+.timbre-icon {
+  font-size: 24px;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.dark .timbre-icon {
+  color: #f1f5f9;
+}
+
+.timbre-name {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.dark .timbre-name {
+  color: #94a3b8;
+}
+
+/* MIDI 设备选择器样式 */
+.midi-device-selector {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .midi-device-selector {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.midi-device-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .midi-device-title {
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.midi-device-status {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .midi-device-status {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.midi-device-status.connected {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.midi-device-status.disconnected {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.midi-select-wrapper {
+  margin-bottom: 8px;
+}
+
+.midi-device-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dark .midi-device-select {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+.midi-device-select:focus {
+  outline: none;
+  border-color: #7c3aed;
+}
+
+.midi-refresh-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dark .midi-refresh-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.midi-refresh-btn:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.dark .midi-refresh-btn:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.rhythm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .rhythm-header {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rhythm-header .panel-header {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dark .rhythm-header .panel-header {
+  color: #f1f5f9;
+}
+
+.rhythm-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.rhythm-info .current-rhythm-label {
+  color: #64748b;
+}
+
+.dark .rhythm-info .current-rhythm-label {
+  color: #94a3b8;
+}
+
+.rhythm-info .current-rhythm-value {
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.rhythm-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rhythm-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rhythm-group-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rhythm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rhythm-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 4px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dark .rhythm-btn {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.rhythm-btn:hover {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  transform: translateY(-2px);
+}
+
+.dark .rhythm-btn:hover {
+  background: #334155;
+}
+
+.rhythm-btn.selected {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.rhythm-btn.selected .rhythm-smufl,
+.rhythm-btn.selected .rhythm-label {
+  color: #ffffff;
+}
+
+.rhythm-smufl {
+  font-family: 'Bravura', sans-serif;
+  font-size: 24px;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.dark .rhythm-smufl {
+  color: #f1f5f9;
+}
+
+.rhythm-label {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.dark .rhythm-label {
+  color: #94a3b8;
+}
+
+.rhythm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .rhythm-actions {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rhythm-actions .modern-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .rhythm-selector {
+    padding: 12px;
+  }
+  
+  .rhythm-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .rhythm-btn {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .rhythm-smufl {
+    font-size: 20px;
+  }
+  
+  .rhythm-actions {
+    flex-direction: column;
+  }
+}
