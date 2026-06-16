@@ -155,8 +155,17 @@ function createChordButton(chord, isMinorKey, store, isChromatic) {
 
   btn.appendChild(badge);
 
-  btn.addEventListener('click', () => {
-    store.sendAction(chord);
+  btn.addEventListener('click', async () => {
+    try {
+      await store.sendAction(chord);
+      // 播放和弦声音
+      if (window.sposobinAudio) {
+        // 通过发送自定义事件来触发播放
+        window.dispatchEvent(new CustomEvent('sposobin:play-chord'));
+      }
+    } catch (e) {
+      console.error('发送和弦失败:', e);
+    }
   });
 
   return btn;

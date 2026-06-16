@@ -123,11 +123,16 @@ export function createScoreRenderer(store) {
  */
 export function renderScore(store) {
   const svg = document.getElementById('score-svg');
-  if (!svg) return;
+  const scoreContainer = document.getElementById('score-container');
+  if (!svg || !scoreContainer) return;
 
   const renderData = store.renderData || { sigs: [], nodes: [] };
   const timeSignature = store.time_signature || '4/4';
   const beatsPerMeasure = parseInt(timeSignature.split('/')[0]) || 4;
+
+  // 获取容器宽度，让五线谱填满可用空间
+  const containerWidth = scoreContainer.clientWidth || window.innerWidth - 60;
+  const minWidth = 600;
 
   // 计算布局参数
   const sigCount = renderData.sigs?.length || 0;
@@ -136,12 +141,15 @@ export function renderScore(store) {
   const paddingAfterControls = timeSignature ? (NODE_SPACING / 1.7) : 15;
   const firstNodeX = keySigEnd + timeSigWidth + paddingAfterControls;
 
-  // 计算 SVG 宽度
+  // 计算 SVG 宽度 - 使用容器宽度，确保填满可用空间
   const nodeCount = renderData.nodes?.length || 0;
-  let svgWidth = 900;
+  let svgWidth = Math.max(minWidth, containerWidth);
+  
+  // 如果有节点，计算节点需要的最小宽度
   if (nodeCount > 0) {
     const lastNodeX = getNodeX(nodeCount - 1, beatsPerMeasure, firstNodeX);
-    svgWidth = Math.max(900, lastNodeX + NODE_SPACING + 50);
+    const nodeRequiredWidth = lastNodeX + NODE_SPACING + 50;
+    svgWidth = Math.max(svgWidth, nodeRequiredWidth);
   }
 
   svg.setAttribute('width', String(svgWidth));
@@ -150,7 +158,7 @@ export function renderScore(store) {
   // 清空
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-  // 获取深色模式状态
+  // 获取深色模式状态（参考 history_ver/2026-6-14-15-13）
   const isDark = document.documentElement.classList.contains('dark');
   const lineColor = isDark ? '#ffffff' : '#000000';
   const noteColor = isDark ? '#ffffff' : '#0F172A';
@@ -163,7 +171,7 @@ export function renderScore(store) {
     .bar-line { stroke: ${lineColor}; stroke-width: 1.6; }
     .note-head { fill: ${noteColor}; }
     .note-head-pending { fill: #F59E0B; }
-    .note-head-target { fill: #CBD5E1; }
+    .note-head-target { fill: ${isDark ? '#94A3B8' : '#9CA3AF'}; }
     .chord-label { font-weight: 500; font-family: 'Lora', 'Georgia', serif; font-size: 16px; fill: ${isDark ? '#ffffff' : '#E11D48'}; text-anchor: middle; }
     .hover-bg { fill: transparent; transition: fill 0.2s; }
     .clickable-node { cursor: pointer; }
@@ -407,7 +415,7 @@ export function renderScore(store) {
         restHead.classList.add('bravura-text');
         restHead.setAttribute('font-size', '48');
         restHead.setAttribute('dy', '0');
-        restHead.setAttribute('fill', getNodeColor(node.type));
+        restHead.setAttribute('fill', getNodeColor(node.type, isDark));
         restHead.textContent = noteHeadChar;
         noteG.appendChild(restHead);
       } else {
@@ -418,7 +426,7 @@ export function renderScore(store) {
         noteHead.classList.add('bravura-text');
         noteHead.setAttribute('font-size', '48');
         noteHead.setAttribute('dy', '0');
-        noteHead.setAttribute('fill', getNodeColor(node.type));
+        noteHead.setAttribute('fill', getNodeColor(node.type, isDark));
         noteHead.textContent = noteHeadChar;
         noteG.appendChild(noteHead);
 
@@ -433,7 +441,7 @@ export function renderScore(store) {
           stem.setAttribute('y1', String(note.y));
           stem.setAttribute('x2', String(stemX));
           stem.setAttribute('y2', String(stemY2));
-          stem.setAttribute('stroke', getNodeColor(node.type));
+          stem.setAttribute('stroke', getNodeColor(node.type, isDark));
           stem.setAttribute('stroke-width', '1.6');
           stem.classList.add('stem');
           noteG.appendChild(stem);
@@ -447,7 +455,7 @@ export function renderScore(store) {
               flag.setAttribute('y', String(flagY + i * 8 * (isUpper ? 1 : -1)));
               flag.classList.add('bravura-text');
               flag.setAttribute('font-size', '24');
-              flag.setAttribute('fill', getNodeColor(node.type));
+              flag.setAttribute('fill', getNodeColor(node.type, isDark));
               flag.textContent = isUpper ? '\uE240' : '\uE241'; // 向上/向下符尾
               noteG.appendChild(flag);
             }
@@ -460,7 +468,7 @@ export function renderScore(store) {
           dot.setAttribute('cx', String(note.x + 14));
           dot.setAttribute('cy', String(note.y - 4));
           dot.setAttribute('r', '3');
-          dot.setAttribute('fill', getNodeColor(node.type));
+          dot.setAttribute('fill', getNodeColor(node.type, isDark));
           dot.classList.add('dot');
           noteG.appendChild(dot);
         }
@@ -471,7 +479,7 @@ export function renderScore(store) {
           dot1.setAttribute('cx', String(note.x + 14));
           dot1.setAttribute('cy', String(note.y - 4));
           dot1.setAttribute('r', '3');
-          dot1.setAttribute('fill', getNodeColor(node.type));
+          dot1.setAttribute('fill', getNodeColor(node.type, isDark));
           dot1.classList.add('dot');
           noteG.appendChild(dot1);
 
@@ -479,7 +487,7 @@ export function renderScore(store) {
           dot2.setAttribute('cx', String(note.x + 20));
           dot2.setAttribute('cy', String(note.y));
           dot2.setAttribute('r', '2.5');
-          dot2.setAttribute('fill', getNodeColor(node.type));
+          dot2.setAttribute('fill', getNodeColor(node.type, isDark));
           dot2.classList.add('dot');
           noteG.appendChild(dot2);
         }
@@ -551,10 +559,9 @@ export function renderScore(store) {
     mainGroup.appendChild(playheadG);
 
     // 自动滚动
-    const container = document.getElementById('score-container');
-    if (container) {
-      const offset = playheadX - container.clientWidth * 0.382;
-      container.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+    if (scoreContainer) {
+      const offset = playheadX - scoreContainer.clientWidth * 0.382;
+      scoreContainer.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
     }
   }
 
@@ -583,15 +590,12 @@ function getSMuFLChar(sym) {
 }
 
 /**
- * 根据节点类型返回对应的颜色（深色模式下使用白色）
+ * 根据节点类型返回对应的颜色（考虑深色/浅色模式）
  */
-function getNodeColor(type) {
-  const isDark = document.documentElement.classList.contains('dark');
-  const textColor = isDark ? '#ffffff' : '#0F172A';
-  
-  if (type === 'history') return textColor;
-  if (type === 'pending') return '#F59E0B';
-  return '#CBD5E1';
+function getNodeColor(type, isDark) {
+  if (type === 'history') return isDark ? '#ffffff' : '#0F172A';   // 已弹奏历史
+  if (type === 'pending') return '#F59E0B';   // 待弹奏提示
+  return isDark ? '#94A3B8' : '#9CA3AF';       // 目标参考
 }
 
 /**

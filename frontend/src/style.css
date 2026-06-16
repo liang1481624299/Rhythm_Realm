@@ -619,11 +619,352 @@ html.dark .solfege-header {
   height: 100%;
 }
 
+/* Sposobin Header */
+.header-inner.sposobin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.mode-select,
+.key-select,
+.timesig-select {
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-title);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.mode-select:hover,
+.key-select:hover,
+.timesig-select:hover {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+html.dark .mode-select,
+html.dark .key-select,
+html.dark .timesig-select {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-title);
+}
+
 .solfege-main {
   position: relative;
   z-index: 10;
   padding-top: 5rem;
   min-height: 100vh;
+}
+
+/* ============================================================
+   设置按钮与设置面板样式
+   ============================================================ */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-wrap {
+  position: relative;
+}
+
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-title);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.settings-btn:hover {
+  border-color: var(--accent-indigo);
+  background: var(--surface-hover);
+}
+
+.settings-btn--open {
+  border-color: var(--accent-indigo);
+  background: var(--accent-indigo-light);
+}
+
+.settings-btn-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .settings-btn-label {
+    display: inline;
+  }
+}
+
+.settings-btn-chevron {
+  transition: transform 0.2s ease;
+}
+
+.settings-btn--open .settings-btn-chevron {
+  transform: rotate(180deg);
+}
+
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 300px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.settings-panel--open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.settings-section {
+  padding: 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.settings-panel-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.settings-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-item:hover {
+  background: var(--border-light);
+}
+
+.settings-item--active {
+  background: var(--accent-indigo-light);
+}
+
+.settings-item--active .settings-item-radio {
+  border-color: var(--accent-indigo);
+}
+
+.settings-item--active .settings-item-radio-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.settings-item-radio {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-solid);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+
+.settings-item-radio-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-indigo);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.settings-item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-item-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-title);
+}
+
+.settings-item-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-title);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.settings-select:hover {
+  border-color: var(--accent-indigo);
+}
+
+.settings-select:focus {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.settings-timesig {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.settings-pill {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  color: var(--text-title);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-pill:hover {
+  border-color: var(--accent-indigo);
+}
+
+.settings-pill--active {
+  background: var(--accent-indigo);
+  border-color: var(--accent-indigo);
+  color: white;
+}
+
+/* 批改按钮 */
+.grading-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.grading-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.grading-btn-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .grading-btn-label {
+    display: inline;
+  }
+}
+
+html.dark .settings-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-title);
+}
+
+html.dark .settings-btn:hover {
+  background: rgba(51, 65, 85, 0.8);
+}
+
+html.dark .settings-panel {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .settings-section {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .settings-item:hover {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+html.dark .settings-select {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-title);
+}
+
+html.dark .settings-pill {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-title);
 }
 
 .solfege-container {

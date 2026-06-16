@@ -164,10 +164,9 @@ body {
    布局
    ============================================================ */
 .sposobin-container {
-  min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .sposobin-main {
@@ -484,6 +483,7 @@ html.dark .theme-toggle-btn:hover {
 .score-section {
   padding: 1rem;
   margin-bottom: 1rem;
+  background: var(--surface);  /* 跟随主题变化的背景 */
 }
 
 @media (min-width: 768px) {
@@ -512,15 +512,13 @@ html.dark .theme-toggle-btn:hover {
   background: var(--border-light);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-}
-
 .score-container {
   overflow-x: auto;
   overflow-y: hidden;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: var(--score-bg);
-  padding: 0.5rem;
+  background: var(--surface);  /* 跟随主题变化的背景 */
+} padding: 0.5rem;
 }
 
 /* ============================================================
@@ -1223,7 +1221,7 @@ html.dark .chord-secondary {
 .score-container {
   overflow-x: auto;
   overflow-y: hidden;
-  background: var(--score-bg);
+  background: var(--surface);  /* 跟随主题变化的背景 */
   border-radius: var(--radius-md);
   padding: 0.5rem 0;
 }
