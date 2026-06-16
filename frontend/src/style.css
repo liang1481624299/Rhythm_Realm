@@ -872,6 +872,24 @@ html.dark .timesig-select {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
+.settings-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  color: var(--text-title);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
 .settings-timesig {
   display: flex;
   gap: 0.5rem;

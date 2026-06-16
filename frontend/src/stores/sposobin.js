@@ -17,6 +17,11 @@ export const SPOSOBIN_KEY_OPTIONS = [
 
 export const SPOSOBIN_TIMESIG_OPTIONS = ['4/4', '3/4', '2/4'];
 
+export const SPOSOBIN_AUDIO_MODES = [
+  { value: 'sampler', label: '采样音 (钢琴/弦乐)' },
+  { value: 'midi', label: '客户端 MIDI (内置合成器)' }
+];
+
 const _subscribers = [];
 
 function _notify() {
@@ -34,6 +39,8 @@ export const sposobinStore = reactive({
   categories: { diatonic: {}, chromatic: {} },
   playbackIndex: null,
   timbre: 'piano',
+  audioMode: 'sampler',
+  bpm: 100,
   isPlaying: false,
   playbackTimeouts: [],
 
@@ -124,6 +131,17 @@ export async function setSposobinTimeSig(sig) {
   if (sposobinStore.time_signature === sig) return;
   sposobinStore.time_signature = sig;
   sposobinStore.resetState();
+}
+
+export async function setSposobinBpm(bpm) {
+  const num = parseInt(bpm, 10);
+  if (isNaN(num) || num < 40 || num > 300) return;
+  sposobinStore.bpm = num;
+}
+
+export async function setSposobinAudioMode(mode) {
+  if (sposobinStore.audioMode === mode) return;
+  sposobinStore.audioMode = mode;
 }
 
 export function subscribeSposobin(fn) {

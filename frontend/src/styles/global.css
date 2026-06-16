@@ -645,6 +645,17 @@ html.dark .mobile-theme-toggle {
   cursor: pointer;
 }
 
+.mobile-settings-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-fg);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
 .slide-enter-active,
 .slide-leave-active {
   transition: opacity 0.25s ease;

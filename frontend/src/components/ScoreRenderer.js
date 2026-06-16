@@ -132,7 +132,7 @@ export function renderScore(store) {
 
   // 获取容器宽度，让五线谱填满可用空间
   const containerWidth = scoreContainer.clientWidth || window.innerWidth - 60;
-  const minWidth = 800;
+  const minWidth = 600;
 
   // 计算布局参数
   const sigCount = renderData.sigs?.length || 0;

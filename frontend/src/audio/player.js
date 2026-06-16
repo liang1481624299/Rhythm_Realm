@@ -1,5 +1,8 @@
 import * as Tone from 'tone';
 
+let currentBpm = 100;
+let currentAudioMode = 'sampler'; // 'sampler' or 'midi'
+
 const synth = new Tone.PolySynth(Tone.Synth, {
   oscillator: {
     type: "triangle"
@@ -13,20 +16,48 @@ const synth = new Tone.PolySynth(Tone.Synth, {
   volume: -8
 }).toDestination();
 
+// MIDI mode: Simple oscillator-based synth
+const midiOscillator = new Tone.PolySynth(Tone.Synth, {
+  oscillator: {
+    type: "sine"
+  },
+  envelope: {
+    attack: 0.01,
+    decay: 0.1,
+    sustain: 0.5,
+    release: 0.5
+  },
+  volume: -8
+}).toDestination();
+
+export function setBpm(bpm) {
+  currentBpm = bpm;
+  Tone.Transport.bpm.value = bpm;
+}
+
+export function setAudioMode(mode) {
+  currentAudioMode = mode;
+}
+
 export async function playChord(voices) {
   await Tone.start();
   const freqs = Object.values(voices).map(midi => Tone.Frequency(midi, "midi").toFrequency());
-  synth.triggerAttackRelease(freqs, "2n");
+  const activeSynth = currentAudioMode === 'midi' ? midiOscillator : synth;
+  activeSynth.triggerAttackRelease(freqs, "2n");
 }
 
 export async function playSequence(historySequence) {
   await Tone.start();
   const now = Tone.now();
-  const duration = 1.0;
-  
+  // BPM: beats per minute, each chord is 1 beat (quarter note)
+  const beatDuration = 60.0 / currentBpm;
+  const duration = beatDuration;
+
+  const activeSynth = currentAudioMode === 'midi' ? midiOscillator : synth;
+
   historySequence.forEach((item, index) => {
     const freqs = Object.values(item.voices).map(midi => Tone.Frequency(midi, "midi").toFrequency());
-    synth.triggerAttackRelease(freqs, duration, now + index * duration);
+    activeSynth.triggerAttackRelease(freqs, duration, now + index * duration);
   });
 }
 

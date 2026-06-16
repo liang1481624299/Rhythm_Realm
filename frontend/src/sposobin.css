@@ -477,6 +477,35 @@ html.dark .theme-toggle-btn:hover {
   background: var(--accent-red-light);
 }
 
+.export-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.export-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.export-menu-item:hover {
+  background: var(--accent-indigo-light);
+}
+
+.export-menu-item span:first-child {
+  font-size: 14px;
+}
+
 /* ============================================================
    五线谱区域
    ============================================================ */

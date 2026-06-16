@@ -246,6 +246,40 @@ export function renderSposobin({ container }) {
       } catch (e) {
         alert('导出失败');
       }
+    },
+
+    async exportMIDI() {
+      if (sposobinStore.history.length === 0) {
+        alert('没有可导出的和声序列');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/export_midi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: sposobinStore.mode,
+            key_name: sposobinStore.key_name,
+            time_signature: sposobinStore.time_signature,
+            target_melody: sposobinStore.target_melody,
+            history: sposobinStore.history,
+            pending_note: sposobinStore.pending_note,
+            bpm: sposobinStore.bpm
+          })
+        });
+        const data = await res.json();
+
+        const blob = new Blob([data.midi], { type: 'audio/midi' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Sposobin_${sposobinStore.key_name.replace(/\s+/g, '_')}.mid`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('导出 MIDI 失败');
+      }
     }
   };
 }

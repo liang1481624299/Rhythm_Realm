@@ -68,6 +68,38 @@
                 @click="onChangeTimesig(t)"
               >{{ t }}</button>
             </div>
+
+            <div class="settings-panel-title">BPM</div>
+            <input
+              type="number"
+              class="settings-input"
+              :value="store.bpm"
+              min="40"
+              max="300"
+              @change="onChangeBpm($event.target.value)"
+            />
+
+            <div class="settings-panel-title">音频模式</div>
+            <ul class="settings-list">
+              <li
+                v-for="a in audioModes"
+                :key="a.value"
+                role="menuitem"
+                tabindex="0"
+                class="settings-item"
+                :class="{ 'settings-item--active': store.audioMode === a.value }"
+                @click="onSelectAudioMode(a.value)"
+                @keydown.enter="onSelectAudioMode(a.value)"
+                @keydown.space.prevent="onSelectAudioMode(a.value)"
+              >
+                <span class="settings-item-radio">
+                  <span v-if="store.audioMode === a.value" class="settings-item-radio-dot" />
+                </span>
+                <span class="settings-item-text">
+                  <span class="settings-item-label">{{ a.label }}</span>
+                </span>
+              </li>
+            </ul>
           </div>
         </transition>
       </div>
@@ -124,6 +156,29 @@
           >{{ t }}</button>
         </div>
       </div>
+      <div class="mobile-settings-section">
+        <div class="mobile-settings-title">BPM</div>
+        <input
+          type="number"
+          class="mobile-settings-input"
+          :value="store.bpm"
+          min="40"
+          max="300"
+          @change="onChangeBpm($event.target.value)"
+        />
+      </div>
+      <div class="mobile-settings-section">
+        <div class="mobile-settings-title">音频模式</div>
+        <div class="mobile-settings-options">
+          <button
+            v-for="a in audioModes"
+            :key="a.value"
+            class="mobile-settings-option"
+            :class="{ 'mobile-settings-option--active': store.audioMode === a.value }"
+            @click="onSelectAudioMode(a.value)"
+          >{{ a.label }}</button>
+        </div>
+      </div>
       <div class="mobile-menu-divider"></div>
       <button class="mobile-grading-btn" @click="onGrading">
         <span v-html="iconCamera" />
@@ -147,15 +202,19 @@ import {
   SPOSOBIN_MODES,
   SPOSOBIN_KEY_OPTIONS,
   SPOSOBIN_TIMESIG_OPTIONS,
+  SPOSOBIN_AUDIO_MODES,
   setSposobinMode,
   setSposobinKey,
-  setSposobinTimeSig
+  setSposobinTimeSig,
+  setSposobinBpm,
+  setSposobinAudioMode
 } from '../../stores/sposobin.js';
 
 const store = sposobinStore;
 const modes = SPOSOBIN_MODES;
 const keyOptions = SPOSOBIN_KEY_OPTIONS;
 const timesigOptions = SPOSOBIN_TIMESIG_OPTIONS;
+const audioModes = SPOSOBIN_AUDIO_MODES;
 
 const iconSettings = Icons.settings;
 const iconChevronDown = Icons.chevronDown;
@@ -178,6 +237,14 @@ function onChangeKey(k) {
 
 function onChangeTimesig(t) {
   setSposobinTimeSig(t);
+}
+
+function onChangeBpm(bpm) {
+  setSposobinBpm(bpm);
+}
+
+function onSelectAudioMode(mode) {
+  setSposobinAudioMode(mode);
 }
 
 function onToggleTheme() {

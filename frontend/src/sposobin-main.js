@@ -181,7 +181,20 @@ async function initAudioEngine() {
     globalSynth = null;
   }
   
-  const config = timbreConfigs[currentTimbre] || timbreConfigs.piano;
+  // MIDI 模式使用简单的 sine 波形，不使用采样
+  const audioMode = store.audioMode || 'sampler';
+  let config;
+  
+  if (audioMode === 'midi') {
+    config = {
+      type: 'polySynth',
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.5 },
+      volume: -6
+    };
+  } else {
+    config = timbreConfigs[currentTimbre] || timbreConfigs.piano;
+  }
   
   if (config.type === 'sampler') {
     globalSynth = new Tone.Sampler({
@@ -203,6 +216,12 @@ async function initAudioEngine() {
 // 切换音色
 async function changeTimbre(timbre) {
   currentTimbre = timbre;
+  await initAudioEngine();
+}
+
+// 切换音频模式
+async function changeAudioMode(mode) {
+  store.audioMode = mode;
   await initAudioEngine();
 }
 
@@ -237,7 +256,8 @@ window.sposobinAudio = {
     await Tone.loaded();
 
     store._isPlaying = true;
-    const intervalMs = 1000;
+    // BPM: beats per minute, each chord is 1 beat (quarter note)
+    const intervalMs = (60.0 / (store.bpm || 100)) * 1000;
     let currentIndex = 0;
 
     function playStep() {

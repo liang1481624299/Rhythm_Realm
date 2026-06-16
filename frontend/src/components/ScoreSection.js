@@ -37,13 +37,56 @@ export function createScoreSection(store) {
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'modern-btn modern-btn-primary';
-  exportBtn.innerHTML = '<span>🎼</span> 导出 MusicXML';
-  exportBtn.addEventListener('click', () => {
-    // 导出逻辑
-    if (window.sposobinAPI) {
-      window.sposobinAPI.exportMusicXML();
-    }
+  exportBtn.innerHTML = '<span>🎼</span> 导出 <span class="export-arrow">▾</span>';
+  exportBtn.style.position = 'relative';
+
+  const exportMenu = document.createElement('div');
+  exportMenu.className = 'export-menu';
+  exportMenu.innerHTML = `
+    <button class="export-menu-item" data-format="musicxml">
+      <span>🎼</span> 导出 MusicXML
+    </button>
+    <button class="export-menu-item" data-format="midi">
+      <span>🎹</span> 导出 MIDI
+    </button>
+  `;
+  exportMenu.style.display = 'none';
+  exportMenu.style.position = 'absolute';
+  exportMenu.style.top = '100%';
+  exportMenu.style.left = '0';
+  exportMenu.style.marginTop = '4px';
+  exportMenu.style.background = 'var(--glass-bg)';
+  exportMenu.style.border = '1px solid var(--border)';
+  exportMenu.style.borderRadius = '8px';
+  exportMenu.style.padding = '4px 0';
+  exportMenu.style.zIndex = '100';
+  exportMenu.style.minWidth = '160px';
+  exportMenu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+
+  exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportMenu.style.display = exportMenu.style.display === 'none' ? 'block' : 'none';
   });
+
+  exportMenu.querySelectorAll('.export-menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const format = item.dataset.format;
+      if (window.sposobinAPI) {
+        if (format === 'musicxml') {
+          window.sposobinAPI.exportMusicXML();
+        } else if (format === 'midi') {
+          window.sposobinAPI.exportMIDI();
+        }
+      }
+      exportMenu.style.display = 'none';
+    });
+  });
+
+  document.addEventListener('click', () => {
+    exportMenu.style.display = 'none';
+  });
+
+  exportBtn.appendChild(exportMenu);
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'modern-btn modern-btn-danger';
