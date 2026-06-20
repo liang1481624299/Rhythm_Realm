@@ -15,10 +15,10 @@ from pydantic import BaseModel
 from typing import List, Optional
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from tonality import KEY_REGISTRY, transpose_dna, spell_midi
-from dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
-from engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, v_to_tuple
-from rules import evaluate_voicing
+from apps.sposobin.tonality import KEY_REGISTRY, transpose_dna, spell_midi
+from apps.sposobin.dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
+from apps.sposobin.engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, v_to_tuple
+from apps.sposobin.rules import evaluate_voicing
 
 # ⚡ V1.2 专业升级版：注入全量声部对齐与熔断机制
 app = FastAPI(title="Sposobin Harmony Engine V1.3")

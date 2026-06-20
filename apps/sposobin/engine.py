@@ -1,7 +1,7 @@
 # engine.py
 import itertools
-from dna import AVAILABLE_NOTES
-from rules import evaluate_voicing
+from apps.sposobin.dna import AVAILABLE_NOTES
+from apps.sposobin.rules import evaluate_voicing
 
 def v_to_tuple(v): return (v['S'], v['A'], v['T'], v['B'])
 def tuple_to_v(t): return {'S': t[0], 'A': t[1], 'T': t[2], 'B': t[3]}
