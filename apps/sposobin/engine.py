@@ -17,10 +17,6 @@ def get_chord_siblings(chord_name, dna_db):
     # 终止四六、那不勒斯六、增六和弦具有极强的定向解决趋势，禁止自由同和弦转换
     if "₆₄" in chord_name or "⁺⁶" in chord_name or chord_name == "N₆":
         return []
-    
-    # 不完全和弦不参与同和弦转换，避免与完整和弦混淆
-    if "不完全" in chord_name:
-        return [chord_name]
         
     def get_core(c):
         parts = c.split('/')
@@ -38,9 +34,6 @@ def get_chord_siblings(chord_name, dna_db):
     
     for k in dna_db.keys():
         if "₆₄" in k or "⁺⁶" in k or k == "N₆":
-            continue
-        # 不完全和弦不参与同和弦转换
-        if "不完全" in k:
             continue
         if get_core(k) == my_core:
             # 铁律：可以由三和弦平滑过渡为七和弦，但七/九和弦绝对不能退化回三和弦

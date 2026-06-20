@@ -37,40 +37,107 @@ export function createScoreSection(store) {
 
   const exportBtn = document.createElement('button');
   exportBtn.className = 'modern-btn modern-btn-primary';
-  exportBtn.innerHTML = '<span>🎼</span> 导出 <span class="export-arrow">▾</span>';
-  exportBtn.style.position = 'relative';
+  exportBtn.innerHTML = '<span>🎼</span> 导出';
 
-  const exportMenu = document.createElement('div');
-  exportMenu.className = 'export-menu';
-  exportMenu.innerHTML = `
-    <button class="export-menu-item" data-format="musicxml">
-      <span>🎼</span> 导出 MusicXML
-    </button>
-    <button class="export-menu-item" data-format="midi">
-      <span>🎹</span> 导出 MIDI
-    </button>
+  // 创建导出模态框
+  const exportModal = document.createElement('div');
+  exportModal.className = 'export-modal';
+  exportModal.innerHTML = `
+    <div class="export-modal-content">
+      <div class="export-modal-title">选择导出格式</div>
+      <button class="export-modal-option" data-format="musicxml">
+        <span class="export-modal-icon">🎼</span>
+        <span class="export-modal-label">MusicXML</span>
+        <span class="export-modal-desc">用于乐谱软件如 Sibelius, Finale</span>
+      </button>
+      <button class="export-modal-option" data-format="midi">
+        <span class="export-modal-icon">🎹</span>
+        <span class="export-modal-label">MIDI</span>
+        <span class="export-modal-desc">用于音乐制作软件</span>
+      </button>
+      <button class="export-modal-cancel">取消</button>
+    </div>
   `;
-  exportMenu.style.display = 'none';
-  exportMenu.style.position = 'absolute';
-  exportMenu.style.top = '100%';
-  exportMenu.style.left = '0';
-  exportMenu.style.marginTop = '4px';
-  exportMenu.style.background = 'var(--glass-bg)';
-  exportMenu.style.border = '1px solid var(--border)';
-  exportMenu.style.borderRadius = '8px';
-  exportMenu.style.padding = '4px 0';
-  exportMenu.style.zIndex = '100';
-  exportMenu.style.minWidth = '160px';
-  exportMenu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
 
-  exportBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    exportMenu.style.display = exportMenu.style.display === 'none' ? 'block' : 'none';
+  exportModal.style.display = 'none';
+  exportModal.style.position = 'fixed';
+  exportModal.style.top = '0';
+  exportModal.style.left = '0';
+  exportModal.style.right = '0';
+  exportModal.style.bottom = '0';
+  exportModal.style.background = 'rgba(0,0,0,0.5)';
+  exportModal.style.zIndex = '1000';
+  exportModal.style.justifyContent = 'center';
+  exportModal.style.alignItems = 'center';
+
+  const modalContent = exportModal.querySelector('.export-modal-content');
+  modalContent.style.background = 'var(--color-bg)';
+  modalContent.style.borderRadius = '12px';
+  modalContent.style.padding = '24px';
+  modalContent.style.minWidth = '300px';
+  modalContent.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
+
+  const modalTitle = exportModal.querySelector('.export-modal-title');
+  modalTitle.style.fontSize = '18px';
+  modalTitle.style.fontWeight = '600';
+  modalTitle.style.marginBottom = '16px';
+  modalTitle.style.textAlign = 'center';
+  modalTitle.style.color = 'var(--color-fg-title)';
+
+  const modalCancelBtn = exportModal.querySelector('.export-modal-cancel');
+  modalCancelBtn.style.marginTop = '12px';
+  modalCancelBtn.style.width = '100%';
+  modalCancelBtn.style.padding = '10px';
+  modalCancelBtn.style.background = 'transparent';
+  modalCancelBtn.style.border = '1px solid var(--color-border)';
+  modalCancelBtn.style.borderRadius = '8px';
+  modalCancelBtn.style.color = 'var(--color-fg-secondary)';
+  modalCancelBtn.style.cursor = 'pointer';
+
+  exportModal.querySelectorAll('.export-modal-option').forEach(option => {
+    option.style.display = 'flex';
+    option.style.alignItems = 'center';
+    option.style.width = '100%';
+    option.style.padding = '12px 16px';
+    option.style.marginTop = '8px';
+    option.style.background = 'var(--color-bg-secondary)';
+    option.style.border = '1px solid var(--color-border)';
+    option.style.borderRadius = '8px';
+    option.style.cursor = 'pointer';
+    option.style.gap = '12px';
+    option.style.transition = 'all 0.2s';
   });
 
-  exportMenu.querySelectorAll('.export-menu-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const format = item.dataset.format;
+  exportModal.querySelectorAll('.export-modal-icon').forEach(icon => {
+    icon.style.fontSize = '24px';
+  });
+
+  exportModal.querySelectorAll('.export-modal-label').forEach(label => {
+    label.style.fontWeight = '600';
+    label.style.color = 'var(--color-fg-title)';
+    label.style.flex = '1';
+  });
+
+  exportModal.querySelectorAll('.export-modal-desc').forEach(desc => {
+    desc.style.fontSize = '12px';
+    desc.style.color = 'var(--color-fg-secondary)';
+  });
+
+  exportBtn.addEventListener('click', () => {
+    exportModal.style.display = 'flex';
+  });
+
+  exportModal.querySelectorAll('.export-modal-option').forEach(option => {
+    option.addEventListener('mouseenter', () => {
+      option.style.background = 'var(--accent-indigo-light)';
+      option.style.borderColor = 'var(--accent-indigo)';
+    });
+    option.addEventListener('mouseleave', () => {
+      option.style.background = 'var(--color-bg-secondary)';
+      option.style.borderColor = 'var(--color-border)';
+    });
+    option.addEventListener('click', () => {
+      const format = option.dataset.format;
       if (window.sposobinAPI) {
         if (format === 'musicxml') {
           window.sposobinAPI.exportMusicXML();
@@ -78,15 +145,21 @@ export function createScoreSection(store) {
           window.sposobinAPI.exportMIDI();
         }
       }
-      exportMenu.style.display = 'none';
+      exportModal.style.display = 'none';
     });
   });
 
-  document.addEventListener('click', () => {
-    exportMenu.style.display = 'none';
+  modalCancelBtn.addEventListener('click', () => {
+    exportModal.style.display = 'none';
   });
 
-  exportBtn.appendChild(exportMenu);
+  exportModal.addEventListener('click', (e) => {
+    if (e.target === exportModal) {
+      exportModal.style.display = 'none';
+    }
+  });
+
+  document.body.appendChild(exportModal);
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'modern-btn modern-btn-danger';
