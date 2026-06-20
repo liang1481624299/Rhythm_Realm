@@ -1,4 +1,5 @@
 import { isDarkMode, toggleTheme } from '../lib/theme.js';
+import { gsap } from 'gsap';
 
 const API_BASE = 'http://localhost:8002/api';
 
@@ -129,17 +130,17 @@ export function renderSolfege({ container }) {
   function renderHomeContent(exerciseTypes) {
     mainEl.innerHTML = `
       <div class="solfege-container">
-        <div class="glass-card intro-card">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-16 h-16 rounded-2xl aurora-gradient flex items-center justify-center text-white">
+        <div class="glass-card intro-card" style="padding: 1.5rem;">
+          <div class="home-info-inner" style="align-items: center; padding: 0 0 1rem 0; border-bottom: 1px solid var(--glass-border);">
+            <div class="home-info-icon aurora-gradient text-white" style="width: 3.5rem; height: 3.5rem; border-radius: var(--radius-md);">
               ${icons.ear}
             </div>
             <div>
-              <h2 class="text-2xl font-bold text-slate-900 dark:text-white">视唱练耳</h2>
-              <p class="text-slate-500 dark:text-slate-400">Solfege Training</p>
+              <h2 class="home-info-title" style="font-size: 1.5rem; font-family: var(--font-display);">视唱练耳</h2>
+              <p class="home-info-desc" style="margin-top: 0.15rem;">Solfege Training</p>
             </div>
           </div>
-          <p class="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+          <p class="home-info-desc" style="font-size: 0.95rem; margin-top: 1rem; margin-bottom: 1.5rem; line-height: 1.6;">
             通过科学的训练方法，系统提升您的音乐听觉能力。从音程识别到节奏训练，
             逐步培养精准的音乐感知力和表达能力。
           </p>
@@ -184,11 +185,12 @@ export function renderSolfege({ container }) {
 
   function exerciseCard(exercise) {
     const colorMap = {
-      cyan: 'from-cyan-400 to-cyan-600',
-      purple: 'from-purple-400 to-purple-600',
-      pink: 'from-pink-400 to-pink-600',
-      blue: 'from-blue-400 to-blue-600',
-      orange: 'from-orange-400 to-orange-600'
+      cyan: 'card-cyan',
+      purple: 'card-purple',
+      pink: 'card-pink',
+      blue: 'card-blue',
+      orange: 'card-orange',
+      green: 'card-green'
     };
 
     const iconMap = {
@@ -201,15 +203,15 @@ export function renderSolfege({ container }) {
       melody: icons.music
     };
 
+    const colorClass = colorMap[exercise.color] || 'card-cyan';
+
     return `
-      <div class="glass-card exercise-card cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg" 
-           data-exercise="${exercise.id}">
-        <div class="w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[exercise.color] || 'from-cyan-400 to-cyan-600'} 
-                        flex items-center justify-center text-white mb-4">
+      <div class="glass-card ${colorClass} exercise-card" data-exercise="${exercise.id}">
+        <div class="feature-icon-bullet" style="display: grid; place-items: center; color: white;">
           ${iconMap[exercise.id] || icons.ear}
         </div>
-        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">${exercise.name || exercise.title}</h4>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">${exercise.description || exercise.desc}</p>
+        <h4 class="feature-card-title">${exercise.name || exercise.title}</h4>
+        <p class="feature-card-desc">${exercise.description || exercise.desc}</p>
       </div>
     `;
   }
@@ -286,8 +288,8 @@ export function renderSolfege({ container }) {
         <div class="glass-card exercise-header">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">${isHarmonic ? '和声音程' : '旋律音程'}</h3>
-              <p class="text-slate-500 dark:text-slate-400">听辨${isHarmonic ? '和声' : '旋律'}音程，选择正确的音程名称</p>
+              <h3 class="section-title" style="margin: 0 0 0.25rem 0;">${isHarmonic ? '和声音程' : '旋律音程'}</h3>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">听辨${isHarmonic ? '和声' : '旋律'}音程，选择正确的音程名称</p>
             </div>
             <button class="back-btn" id="interval-back-btn" title="返回首页">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -313,20 +315,19 @@ export function renderSolfege({ container }) {
           </div>
         </div>
 
-        <div class="glass-card play-card">
-          <button class="play-btn" id="play-interval">
+        <div class="glass-card" style="text-align: center; padding: 1.5rem 1rem;">
+          <button class="play-btn-circle" id="play-interval" title="播放音程">
             ${icons.play}
-            <span>播放${isHarmonic ? '和声' : '旋律'}音程</span>
           </button>
-          <div class="feedback" id="interval-feedback"></div>
+          <div class="feedback" id="interval-feedback" style="margin-top: 0.5rem; font-size: 0.95rem; font-weight: 700; min-height: 1.5rem;"></div>
         </div>
 
-        <div class="glass-card answer-card">
-          <div class="interval-grid">
+        <div class="glass-card" style="padding: 1.5rem;">
+          <div class="choice-grid">
             ${intervals.map(i => `
-              <button class="interval-btn" data-interval="${i.abbr}">
-                <div class="interval-abbr">${i.abbr}</div>
-                <div class="interval-name">${i.name}</div>
+              <button class="choice-btn" data-interval="${i.abbr}">
+                <div style="font-size: 1rem; font-weight: 700; color: var(--text-title);">${i.abbr}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">${i.name}</div>
               </button>
             `).join('')}
           </div>
@@ -367,8 +368,8 @@ export function renderSolfege({ container }) {
         <div class="glass-card exercise-header">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">和弦训练</h3>
-              <p class="text-slate-500 dark:text-slate-400">听辨和弦，选择正确的和弦类型</p>
+              <h3 class="section-title" style="margin: 0 0 0.25rem 0;">和弦训练</h3>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">听辨和弦，选择正确的和弦类型</p>
             </div>
             <button class="back-btn" id="chord-back-btn" title="返回首页">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -394,20 +395,19 @@ export function renderSolfege({ container }) {
           </div>
         </div>
 
-        <div class="glass-card play-card">
-          <button class="play-btn" id="play-chord">
+        <div class="glass-card" style="text-align: center; padding: 1.5rem 1rem;">
+          <button class="play-btn-circle" id="play-chord" title="播放和弦">
             ${icons.play}
-            <span>播放和弦</span>
           </button>
-          <div class="feedback" id="chord-feedback"></div>
+          <div class="feedback" id="chord-feedback" style="margin-top: 0.5rem; font-size: 0.95rem; font-weight: 700; min-height: 1.5rem;"></div>
         </div>
 
-        <div class="glass-card answer-card">
-          <div class="chord-grid">
+        <div class="glass-card" style="padding: 1.5rem;">
+          <div class="choice-grid">
             ${chords.map(c => `
-              <button class="chord-btn" data-chord="${c.abbr}">
-                <div class="chord-abbr">${c.abbr}</div>
-                <div class="chord-name">${c.name}</div>
+              <button class="choice-btn" data-chord="${c.abbr}">
+                <div style="font-size: 1rem; font-weight: 700; color: var(--text-title);">${c.abbr}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">${c.name}</div>
               </button>
             `).join('')}
           </div>
@@ -426,15 +426,15 @@ export function renderSolfege({ container }) {
 
   async function renderToneExercise() {
     const notenames = ['c', 'cis', 'd', 'dis', 'e', 'f', 'fis', 'g', 'gis', 'a', 'ais', 'b'];
-    const notenamesCN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const notenamesCN = ['C', 'C# / D♭', 'D', 'D# / E♭', 'E', 'F', 'F# / G♭', 'G', 'G# / A♭', 'A', 'A# / B♭', 'B'];
 
     mainEl.innerHTML = `
       <div class="solfege-container">
         <div class="glass-card exercise-header">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">听音训练</h3>
-              <p class="text-slate-500 dark:text-slate-400">听辨单音，选择正确的音名</p>
+              <h3 class="section-title" style="margin: 0 0 0.25rem 0;">听音训练</h3>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">听辨单音，选择正确的音名</p>
             </div>
             <button class="back-btn" id="tone-back-btn" title="返回首页">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -460,19 +460,18 @@ export function renderSolfege({ container }) {
           </div>
         </div>
 
-        <div class="glass-card play-card">
-          <button class="play-btn" id="play-tone">
+        <div class="glass-card" style="text-align: center; padding: 1.5rem 1rem;">
+          <button class="play-btn-circle" id="play-tone" title="播放单音">
             ${icons.play}
-            <span>播放单音</span>
           </button>
-          <div class="feedback" id="tone-feedback"></div>
+          <div class="feedback" id="tone-feedback" style="margin-top: 0.5rem; font-size: 0.95rem; font-weight: 700; min-height: 1.5rem;"></div>
         </div>
 
-        <div class="glass-card answer-card">
-          <div class="tone-grid">
+        <div class="glass-card" style="padding: 1.5rem;">
+          <div class="choice-grid">
             ${notenames.map((n, i) => `
-              <button class="tone-btn" data-tone="${n}">
-                <div class="tone-name">${notenamesCN[i]}</div>
+              <button class="choice-btn" data-tone="${n}">
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-title);">${notenamesCN[i]}</div>
               </button>
             `).join('')}
           </div>
@@ -493,14 +492,14 @@ export function renderSolfege({ container }) {
     mainEl.innerHTML = `
       <div class="solfege-container">
         <div class="glass-card exercise-header">
-          <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">旋律训练</h3>
-          <p class="text-slate-500 dark:text-slate-400">旋律训练功能开发中...</p>
+          <h3 class="section-title" style="margin: 0 0 0.25rem 0;">旋律训练</h3>
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">旋律训练功能开发中...</p>
         </div>
 
         <div class="glass-card empty-state">
           <div class="text-6xl mb-4">🎵</div>
-          <p class="text-slate-500 dark:text-slate-400">该功能正在开发中</p>
-          <button class="btn-secondary mt-4" onclick="renderHome()">返回首页</button>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">该功能正在全力开发中</p>
+          <button class="btn-secondary" style="margin-top: 1rem;" onclick="location.hash = '#/'">返回首页</button>
         </div>
       </div>
     `;
@@ -528,8 +527,8 @@ export function renderSolfege({ container }) {
         <div class="glass-card exercise-header">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">节奏训练</h3>
-              <p class="text-slate-500 dark:text-slate-400">听辨节奏，选择正确的节奏型</p>
+              <h3 class="section-title" style="margin: 0 0 0.25rem 0;">节奏训练</h3>
+              <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">听辨节奏，选择正确的节奏型</p>
             </div>
             <button class="back-btn" id="rhythm-back-btn" title="返回首页">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -555,11 +554,6 @@ export function renderSolfege({ container }) {
           </div>
         </div>
 
-        <div class="glass-card play-card">
-          <button class="play-btn" id="play-rhythm">
-            ${icons.play}
-            <span>播放节奏</span>
-          </button>
           <div class="feedback" id="rhythm-feedback"></div>
         </div>
 
@@ -659,8 +653,32 @@ export function renderSolfege({ container }) {
     updateUI();
   }
 
+  function animatePlayButton(selector) {
+    const btn = mainEl.querySelector(selector);
+    if (!btn) return;
+    
+    // Scale bounce
+    gsap.fromTo(btn, 
+      { scale: 0.9 }, 
+      { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.3)' }
+    );
+    
+    // Create voice wave ripples around the play button
+    for (let i = 0; i < 3; i++) {
+      const ring = document.createElement('span');
+      ring.className = 'play-ripple-ring';
+      btn.appendChild(ring);
+      
+      gsap.fromTo(ring,
+        { scale: 1, opacity: 0.6 },
+        { scale: 2.2, opacity: 0, duration: 1.2, delay: i * 0.3, ease: 'power2.out', onComplete: () => ring.remove() }
+      );
+    }
+  }
+
   function playInterval(isHarmonic) {
     if (!currentQuestion) return;
+    animatePlayButton('#play-interval');
     const [note1, note2] = currentQuestion.notes;
     
     if (isHarmonic) {
@@ -674,16 +692,19 @@ export function renderSolfege({ container }) {
 
   function playChord() {
     if (!currentQuestion) return;
+    animatePlayButton('#play-chord');
     currentQuestion.notes.forEach(n => playNote(n, 1.5));
   }
 
   function playTone() {
     if (!currentQuestion) return;
+    animatePlayButton('#play-tone');
     playNote(currentQuestion.notes[0], 1.5);
   }
 
   function playRhythm() {
     if (!currentQuestion || !currentQuestion.rhythm_pattern) return;
+    animatePlayButton('#play-rhythm');
     // 简单实现：播放节奏 - 每个pattern播放一个音符
     const bpm = 120;
     const beatDuration = 60 / bpm;
@@ -727,6 +748,38 @@ export function renderSolfege({ container }) {
     const correct = selected === currentQuestion.correct_answer;
     if (correct) score++;
     
+    // GSAP Button Feedback Anim
+    let btn = mainEl.querySelector(`[data-interval="${selected}"]`) ||
+              mainEl.querySelector(`[data-chord="${selected}"]`) ||
+              mainEl.querySelector(`[data-tone="${selected}"]`) ||
+              mainEl.querySelector(`[data-rhythm="${selected}"]`);
+              
+    if (btn) {
+      if (correct) {
+        btn.classList.add('correct');
+        gsap.fromTo(btn, 
+          { scale: 1 }, 
+          { scale: 1.06, duration: 0.2, yoyo: true, repeat: 1, ease: 'power2.out' }
+        );
+      } else {
+        btn.classList.add('incorrect');
+        gsap.fromTo(btn,
+          { x: -8 },
+          { x: 8, duration: 0.06, repeat: 5, yoyo: true, ease: 'none', onComplete: () => gsap.set(btn, { x: 0 }) }
+        );
+        
+        // Auto-highlight correct choice
+        const correctVal = currentQuestion.correct_answer;
+        const correctBtn = mainEl.querySelector(`[data-interval="${correctVal}"]`) ||
+                            mainEl.querySelector(`[data-chord="${correctVal}"]`) ||
+                            mainEl.querySelector(`[data-tone="${correctVal}"]`) ||
+                            mainEl.querySelector(`[data-rhythm="${correctVal}"]`);
+        if (correctBtn) {
+          correctBtn.classList.add('correct');
+        }
+      }
+    }
+    
     try {
       await apiPost('/evaluate', {
         session_id: sessionId,
@@ -750,6 +803,10 @@ export function renderSolfege({ container }) {
     const feedback = mainEl.querySelector(selector);
     feedback.textContent = correct ? '✓ 正确！' : `✗ 错误，正确答案是 ${correctName}`;
     feedback.className = `feedback ${correct ? 'correct' : 'wrong'}`;
+    
+    // GSAP feedback text scale
+    gsap.fromTo(feedback, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(1.5)' });
+
     setTimeout(() => {
       feedback.className = 'feedback';
       feedback.textContent = '';

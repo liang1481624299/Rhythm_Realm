@@ -32,25 +32,44 @@ async function initAudioEngine() {
     globalSynth = null;
   }
 
-  globalSynth = new Tone.Sampler({
-    urls: {
-      "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3",
-      "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3",
-      "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3", "A4": "A4.mp3",
-      "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3", "A5": "A5.mp3",
-      "C6": "C6.mp3"
-    },
-    baseUrl: "/audio/salamander/",
-    release: 1.5,
-    volume: -2
-  }).connect(mainLimiter);
-  await Tone.loaded();
+  const createFallbackSynth = () => {
+    return new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.05, decay: 0.1, sustain: 0.6, release: 1.5 },
+      volume: -8
+    }).connect(mainLimiter);
+  };
+
+  try {
+    globalSynth = new Tone.Sampler({
+      urls: {
+        "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3",
+        "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3",
+        "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3", "A4": "A4.mp3",
+        "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3", "A5": "A5.mp3",
+        "C6": "C6.mp3"
+      },
+      baseUrl: "/audio/salamander/",
+      release: 1.5,
+      volume: -2
+    }).connect(mainLimiter);
+
+    await Promise.race([
+      Tone.loaded(),
+      new Promise((resolve, reject) => setTimeout(() => reject(new Error('Sampler load timeout')), 5000))
+    ]);
+  } catch (error) {
+    console.warn('Salamander piano sampler failed to load, falling back to PolySynth:', error);
+    if (globalSynth) {
+      globalSynth.dispose();
+    }
+    globalSynth = createFallbackSynth();
+  }
 }
 
 async function playSingleChord(voices) {
   await Tone.start();
   await initAudioEngine();
-  await Tone.loaded();
 
   if (globalSynth) {
     globalSynth.release = 0.05;
@@ -58,8 +77,13 @@ async function playSingleChord(voices) {
     globalSynth.release = 1.5;
   }
 
-  const notes = Object.values(voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
-  globalSynth.triggerAttack(notes);
+  const notes = Object.values(voices)
+    .filter(midi => midi !== null && midi !== undefined && !isNaN(midi))
+    .map(midi => Tone.Frequency(midi, 'midi').toNote());
+    
+  if (globalSynth && notes.length > 0) {
+    globalSynth.triggerAttackRelease(notes, 1.5);
+  }
 }
 
 // ===================== 页面渲染入口 =====================
@@ -159,7 +183,6 @@ export function renderSposobin({ container }) {
       sposobinStore.stopSequence();
       await Tone.start();
       await initAudioEngine();
-      await Tone.loaded();
 
       sposobinStore.isPlaying = true;
       const baseIntervalMs = 1000;
@@ -182,13 +205,15 @@ export function renderSposobin({ container }) {
         const currentIntervalMs = duration * baseIntervalMs;
 
         if (!isRest(item)) {
-          const notes = Object.values(item.voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
+          const notes = Object.values(item.voices)
+            .filter(midi => midi !== null && midi !== undefined && !isNaN(midi))
+            .map(midi => Tone.Frequency(midi, 'midi').toNote());
 
-          if (globalSynth) {
+          if (globalSynth && notes.length > 0) {
             globalSynth.release = 0.05;
             globalSynth.releaseAll();
             globalSynth.release = Math.min(duration * 0.8, 1.5);
-            globalSynth.triggerAttack(notes);
+            globalSynth.triggerAttackRelease(notes, (currentIntervalMs / 1000) * 0.9);
           }
         }
 

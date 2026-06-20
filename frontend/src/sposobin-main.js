@@ -197,13 +197,27 @@ async function initAudioEngine() {
   }
   
   if (config.type === 'sampler') {
-    globalSynth = new Tone.Sampler({
-      urls: config.urls,
-      baseUrl: config.baseUrl,
-      release: config.release,
-      volume: config.volume
-    }).connect(mainLimiter);
-    await Tone.loaded();
+    try {
+      globalSynth = new Tone.Sampler({
+        urls: config.urls,
+        baseUrl: config.baseUrl,
+        release: config.release,
+        volume: config.volume
+      }).connect(mainLimiter);
+      
+      await Promise.race([
+        Tone.loaded(),
+        new Promise((resolve, reject) => setTimeout(() => reject(new Error('Sampler load timeout')), 5000))
+      ]);
+    } catch (error) {
+      console.warn('Sampler failed to load, falling back to PolySynth:', error);
+      if (globalSynth) globalSynth.dispose();
+      globalSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.05, decay: 0.1, sustain: 0.6, release: 1.5 },
+        volume: -8
+      }).connect(mainLimiter);
+    }
   } else {
     globalSynth = new Tone.PolySynth(Tone.Synth, {
       oscillator: config.oscillator,
@@ -228,7 +242,6 @@ async function changeAudioMode(mode) {
 async function playSingleChord(voices) {
   await Tone.start();
   await initAudioEngine();
-  await Tone.loaded();
   
   if (globalSynth) {
     globalSynth.release = 0.05;
@@ -236,8 +249,13 @@ async function playSingleChord(voices) {
     globalSynth.release = 1.5;
   }
   
-  const notes = Object.values(voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
-  globalSynth.triggerAttack(notes);
+  const notes = Object.values(voices)
+    .filter(midi => midi !== null && midi !== undefined && !isNaN(midi))
+    .map(midi => Tone.Frequency(midi, 'midi').toNote());
+
+  if (globalSynth && notes.length > 0) {
+    globalSynth.triggerAttackRelease(notes, 1.5);
+  }
 }
 
 window.sposobinAudio = {
@@ -253,7 +271,6 @@ window.sposobinAudio = {
     store.stopSequence();
     await Tone.start();
     await initAudioEngine();
-    await Tone.loaded();
 
     store._isPlaying = true;
     // BPM: beats per minute, each chord is 1 beat (quarter note)
@@ -272,13 +289,16 @@ window.sposobinAudio = {
       renderScore(store);
       
       const item = store.history[currentIndex];
-      const notes = Object.values(item.voices).map(midi => Tone.Frequency(midi, 'midi').toNote());
+      const notes = Object.values(item.voices)
+        .filter(midi => midi !== null && midi !== undefined && !isNaN(midi))
+        .map(midi => Tone.Frequency(midi, 'midi').toNote());
 
-      if (globalSynth) {
+      if (globalSynth && notes.length > 0) {
+        const durationSeconds = intervalMs / 1000;
         globalSynth.release = 0.05;
         globalSynth.releaseAll();
-        globalSynth.release = 1.5;
-        globalSynth.triggerAttack(notes);
+        globalSynth.release = Math.min(durationSeconds * 0.8, 1.5);
+        globalSynth.triggerAttackRelease(notes, durationSeconds * 0.9);
       }
 
       currentIndex++;

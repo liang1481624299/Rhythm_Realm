@@ -7,6 +7,14 @@ import { renderSposobin } from './pages/Sposobin';
 import { renderGrading } from './pages/Grading';
 import { renderSolfege } from './pages/Solfege';
 import { initTheme, toggleTheme, isDarkMode, setupThemeSync } from './lib/theme';
+import { gsap } from 'gsap';
+
+function animatePageIn(container) {
+  gsap.fromTo(container, 
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+  );
+}
 
 // 图标
 const icons = {
@@ -75,7 +83,7 @@ function initApp() {
   app.innerHTML = `
     <div class="aurora-layer" data-aurora></div>
     <header class="site-header" data-header></header>
-    <main data-main style="position: relative; z-index: 10; padding-top: 4rem; min-height: 100vh;"></main>
+    <main data-main style="position: relative; z-index: 10; padding-top: 5.75rem; min-height: 100vh;"></main>
   `;
 
   const auroraSlot = app.querySelector('[data-aurora]');
@@ -93,7 +101,7 @@ function initApp() {
 
     headerSlot.style.display = '';
     auroraSlot.style.display = '';
-    mainSlot.style.paddingTop = '4rem';
+    mainSlot.style.paddingTop = '5.75rem';
 
     // 设置面板HTML
     const settingsPanel = isSposobin ? `
@@ -108,7 +116,7 @@ function initApp() {
             <div class="settings-panel-title">模式</div>
             <ul class="settings-list">
               ${modes.map(m => `
-                <li class="settings-item" data-mode="${m.value}" ${window.sposobinStore?.mode === m.value ? 'class="settings-item settings-item--active"' : 'class="settings-item"'}>
+                <li data-mode="${m.value}" class="settings-item ${window.sposobinStore?.mode === m.value ? 'settings-item--active' : ''}">
                   <span class="settings-item-radio">
                     <span class="settings-item-radio-dot"></span>
                   </span>
@@ -172,7 +180,14 @@ function initApp() {
     `;
 
     // 主题切换
-    headerSlot.querySelector('#theme-toggle')?.addEventListener('click', () => {
+    headerSlot.querySelector('#theme-toggle')?.addEventListener('click', (e) => {
+      const btn = e.currentTarget;
+      gsap.to(btn, {
+        rotation: 360,
+        duration: 0.5,
+        ease: 'back.out(1.5)',
+        clearProps: 'rotation'
+      });
       toggleTheme();
       renderHeader();
     });
@@ -269,12 +284,30 @@ function initApp() {
 
   // Router
   const router = createRouter(mainSlot)
-    .add('/', ({ container }) => renderHome(container))
-    .add('/about', ({ container }) => renderAbout(container))
-    .add('/sposobin', renderSposobin)
-    .add('/solfege', renderSolfege)
-    .add('/grading', ({ container }) => renderGrading(container))
-    .setFallback(renderNotFound);
+    .add('/', ({ container }) => {
+      renderHome(container);
+      animatePageIn(container);
+    })
+    .add('/about', ({ container }) => {
+      renderAbout(container);
+      animatePageIn(container);
+    })
+    .add('/sposobin', (ctx) => {
+      renderSposobin(ctx);
+      animatePageIn(ctx.container);
+    })
+    .add('/solfege', (ctx) => {
+      renderSolfege(ctx);
+      animatePageIn(ctx.container);
+    })
+    .add('/grading', ({ container }) => {
+      renderGrading(container);
+      animatePageIn(container);
+    })
+    .setFallback((ctx) => {
+      renderNotFound(ctx);
+      animatePageIn(ctx.container);
+    });
 
   renderHeader();
   router.start();

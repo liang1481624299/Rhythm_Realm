@@ -3,6 +3,8 @@
  * 参照原来 Vue 组件的实现
  */
 
+import { gsap } from 'gsap';
+
 export function createChordPanel(store) {
   const panel = document.createElement('div');
   panel.className = 'chord-panel';
@@ -91,6 +93,23 @@ function createChordButton(chord, isMinorKey, store, isChromatic) {
   const btn = document.createElement('button');
   btn.className = 'modern-chord-btn' + (isChromatic ? ' chromatic-btn' : '');
 
+  // Add functional group classes for styling as synth pads
+  if (chord.startsWith('T') || chord.startsWith('t')) {
+    btn.classList.add('chord-group-t');
+  } else if (chord.startsWith('S') || chord.startsWith('s')) {
+    btn.classList.add('chord-group-s');
+  } else if (chord.startsWith('DD') || chord.startsWith('dd')) {
+    btn.classList.add('chord-group-dd');
+  } else if (chord.startsWith('DT') || chord.startsWith('dt')) {
+    btn.classList.add('chord-group-dt');
+  } else if (chord.startsWith('D') || chord.startsWith('d')) {
+    btn.classList.add('chord-group-d');
+  } else if (chord.startsWith('K') || chord.startsWith('k')) {
+    btn.classList.add('chord-group-k');
+  } else {
+    btn.classList.add('chord-group-alt');
+  }
+
   const badge = document.createElement('span');
   badge.className = 'chord-badge';
 
@@ -155,7 +174,20 @@ function createChordButton(chord, isMinorKey, store, isChromatic) {
 
   btn.appendChild(badge);
 
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', async (e) => {
+    // GSAP scale click feedback
+    gsap.fromTo(btn, { scale: 0.95 }, { scale: 1, duration: 0.2, ease: 'power2.out' });
+    
+    // Create ripple effect
+    const ripple = document.createElement('span');
+    ripple.className = 'chord-ripple';
+    btn.appendChild(ripple);
+    
+    gsap.fromTo(ripple,
+      { scale: 0, opacity: 0.85 },
+      { scale: 2.2, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => ripple.remove() }
+    );
+
     try {
       await store.sendAction(chord);
       // 播放和弦声音

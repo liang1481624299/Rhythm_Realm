@@ -2,6 +2,8 @@
  * PianoPanel 组件 - 钢琴键盘输入面板
  */
 
+import { gsap } from 'gsap';
+
 export function createPianoPanel(store) {
   const panel = document.createElement('div');
   panel.className = 'piano-panel';
@@ -99,8 +101,30 @@ export function createPianoPanel(store) {
     keysContainer.appendChild(key);
   });
 
+  const woodHeader = document.createElement('div');
+  woodHeader.className = 'piano-wood-header';
+  scrollWrapper.appendChild(woodHeader);
+
   scrollWrapper.appendChild(keysContainer);
   panel.appendChild(scrollWrapper);
+
+  // GSAP stagger entry animation for keys
+  setTimeout(() => {
+    const whites = keysContainer.querySelectorAll('.piano-key-white');
+    const blacks = keysContainer.querySelectorAll('.piano-key-black');
+    if (whites.length > 0) {
+      gsap.fromTo(whites,
+        { y: 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.015, ease: 'power2.out' }
+      );
+    }
+    if (blacks.length > 0) {
+      gsap.fromTo(blacks,
+        { y: 15, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.02, ease: 'power2.out', delay: 0.1 }
+      );
+    }
+  }, 50);
 
   return panel;
 }

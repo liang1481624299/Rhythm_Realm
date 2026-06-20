@@ -1,9 +1,9 @@
+@import url('https://fonts.googleapis.cn/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
 /* ============================================================
    Sposobin 样式 - 结合 src2 极光主题 + src3 布局
    ============================================================ */
-
-/* 字体导入 */
-@import url('https://fonts.googleapis.cn/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* Bravura 音乐字体 */
 @font-face {
@@ -269,10 +269,11 @@ html.dark .sposobin-header {
   display: inline-flex;
   background: var(--surface);
   backdrop-filter: blur(8px);
-  padding: 3px;
+  padding: 4px;
   border-radius: var(--radius-md);
   gap: 2px;
   border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .seg-control input[type="radio"] {
@@ -286,15 +287,26 @@ html.dark .sposobin-header {
   font-weight: 500;
   font-size: 0.8125rem;
   color: var(--text-secondary);
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
   white-space: nowrap;
 }
 
-.seg-control input[type="radio"]:checked + label {
-  background: var(--surface-hover);
+.seg-control label:hover {
   color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
+}
+
+.seg-control input[type="radio"]:checked + label {
+  background: linear-gradient(135deg, var(--accent-cyan-light) 0%, var(--accent-indigo-light) 100%);
+  color: var(--accent-indigo);
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(99, 102, 241, 0.1);
+}
+
+html.dark .seg-control input[type="radio"]:checked + label {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  color: var(--accent-cyan);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================================
@@ -401,22 +413,32 @@ html.dark .theme-toggle-btn:hover {
    选择器
    ============================================================ */
 .modern-select {
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
+  padding: 0.5rem 1.75rem 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text-primary);
   font-size: 0.8125rem;
-  font-family: var(--font-sans);
+  font-weight: 500;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  backdrop-filter: blur(8px);
+}
+
+html.dark .modern-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
 }
 
 .modern-select:hover {
   border-color: var(--accent-indigo);
-  box-shadow: 0 0 0 2px var(--accent-indigo-light);
+  box-shadow: 0 0 0 3px var(--accent-indigo-light);
 }
 
 /* ============================================================
@@ -541,13 +563,14 @@ html.dark .theme-toggle-btn:hover {
   background: var(--border-light);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
+}
 .score-container {
   overflow-x: auto;
   overflow-y: hidden;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);  /* 跟随主题变化的背景 */
-} padding: 0.5rem;
+  padding: 0.5rem;
 }
 
 /* ============================================================
@@ -565,9 +588,20 @@ html.dark .theme-toggle-btn:hover {
   border: 1px solid var(--glass-border);
 }
 
+.piano-wood-header {
+  height: 14px;
+  width: 100%;
+  min-width: 600px;
+  background: linear-gradient(to bottom, #5c2d16 0%, #3e1b0b 100%);
+  border-bottom: 2px solid #1a0a03;
+  border-radius: 4px 4px 0 0;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 2px;
+}
+
 .piano-keys {
   position: relative;
-  height: 120px;
+  height: 115px;
   min-width: 600px;
 }
 
@@ -575,50 +609,104 @@ html.dark .theme-toggle-btn:hover {
   position: absolute;
   width: 28px;
   height: 110px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(180, 200, 220, 0.5);
-  border-radius: 0 0 4px 4px;
+  background: linear-gradient(to bottom, #ffffff 0%, #f6f6f6 90%, #ededed 100%);
+  border: 1px solid rgba(180, 200, 220, 0.6);
+  border-bottom-width: 4px;
+  border-radius: 0 0 5px 5px;
   cursor: pointer;
   z-index: 1;
-  transition: background 0.08s;
+  box-shadow: 
+    0 2px 3px rgba(0, 0, 0, 0.06), 
+    inset 0 1px 0 #ffffff,
+    inset 0 -3px 0 #e0e0e0;
+  transition: transform 0.05s ease, background 0.05s ease, box-shadow 0.05s ease;
 }
 
 .piano-key-white:hover {
-  background: rgba(200, 220, 250, 0.9);
+  background: linear-gradient(to bottom, #ffffff 0%, #f0f5fa 90%, #e1ebf5 100%);
+  border-color: rgba(150, 180, 220, 0.7);
 }
 
 .piano-key-white.active {
-  background: rgba(180, 200, 240, 0.95);
+  background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 90%, #90caf9 100%);
+  box-shadow: 
+    0 1px 1px rgba(0, 0, 0, 0.1),
+    inset 0 2px 5px rgba(0, 0, 0, 0.15),
+    0 0 10px rgba(33, 150, 243, 0.4);
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  height: 109px;
 }
 
 .piano-key-black {
   position: absolute;
   width: 18px;
-  height: 65px;
-  background: #1a2332;
-  border: 1px solid #0d1520;
+  height: 68px;
+  background: linear-gradient(to bottom, #2b3545 0%, #151b24 80%, #0a0f15 100%);
+  border: 1px solid #05080c;
+  border-bottom: 5px solid #000000;
   border-radius: 0 0 3px 3px;
   cursor: pointer;
   z-index: 2;
-  transition: background 0.08s;
+  box-shadow: 
+    0 3px 5px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.05s ease, background 0.05s ease, box-shadow 0.05s ease;
 }
 
 .piano-key-black:hover {
-  background: #2a3a4a;
+  background: linear-gradient(to bottom, #3b475c 0%, #202836 80%, #101620 100%);
 }
 
 .piano-key-black.active {
-  background: #3a4a5a;
+  background: linear-gradient(to bottom, #101620 0%, #080c10 100%);
+  box-shadow: 
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(99, 102, 241, 0.4);
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  height: 67px;
 }
 
 html.dark .piano-key-white {
-  background: rgba(220, 230, 240, 0.9);
-  border-color: rgba(80, 110, 150, 0.4);
+  background: linear-gradient(to bottom, #1e293b 0%, #182235 90%, #0f172a 100%);
+  border-color: rgba(255, 255, 255, 0.06);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 2px 3px rgba(0, 0, 0, 0.2), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+}
+
+html.dark .piano-key-white:hover {
+  background: linear-gradient(to bottom, #25334a 0%, #1e2b40 90%, #152033 100%);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+html.dark .piano-key-white.active {
+  background: linear-gradient(to bottom, #1e3a8a 0%, #1d4ed8 90%, #2563eb 100%);
+  box-shadow: 
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    inset 0 2px 5px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(99, 102, 241, 0.5);
 }
 
 html.dark .piano-key-black {
-  background: #0a1628;
-  border-color: #050d18;
+  background: linear-gradient(to bottom, #111827 0%, #030712 90%, #000000 100%);
+  border-color: #000000;
+  border-bottom-color: #000000;
+  box-shadow: 
+    0 3px 5px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+html.dark .piano-key-black:hover {
+  background: linear-gradient(to bottom, #1f2937 0%, #111827 90%, #030712 100%);
+}
+
+html.dark .piano-key-black.active {
+  background: linear-gradient(to bottom, #030712 0%, #000000 100%);
 }
 
 /* ============================================================
@@ -1085,33 +1173,101 @@ html.dark .aurora-blob {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.25rem;
+  padding: 0.75rem 0.25rem 0.5rem 0.25rem;
   width: 100%;
-  min-height: 48px;
-  border-radius: 6px;
+  min-height: 52px;
+  border-radius: 8px;
   font-family: var(--font-serif);
   font-size: 1.125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-primary);
   user-select: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
+
+/* Audio synth pad top indicator LED strip */
+.modern-chord-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--border-solid);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+/* LED Strip functional group colors */
+.modern-chord-btn.chord-group-t::before { background-color: var(--accent-cyan); opacity: 0.8; }
+.modern-chord-btn.chord-group-s::before { background-color: #ec4899; opacity: 0.8; }
+.modern-chord-btn.chord-group-d::before { background-color: var(--accent-violet); opacity: 0.8; }
+.modern-chord-btn.chord-group-dt::before { background-color: var(--accent-indigo); opacity: 0.8; }
+.modern-chord-btn.chord-group-k::before { background-color: var(--accent-amber); opacity: 0.8; }
+.modern-chord-btn.chord-group-dd::before { background-color: var(--accent-indigo); opacity: 0.8; }
+.modern-chord-btn.chord-group-alt::before { background-color: var(--accent-green); opacity: 0.8; }
 
 .modern-chord-btn:hover {
   background: var(--surface-hover);
+  border-color: var(--border-solid);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.modern-chord-btn:hover::before {
+  opacity: 1;
+  height: 4px;
+}
+
+/* Hover glowing effects based on group */
+.modern-chord-btn.chord-group-t:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+}
+.modern-chord-btn.chord-group-s:hover {
+  border-color: #ec4899;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+}
+.modern-chord-btn.chord-group-d:hover {
+  border-color: var(--accent-violet);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+.modern-chord-btn.chord-group-dt:hover {
   border-color: var(--accent-indigo);
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+.modern-chord-btn.chord-group-k:hover {
+  border-color: var(--accent-amber);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
+}
+.modern-chord-btn.chord-group-dd:hover {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+.modern-chord-btn.chord-group-alt:hover {
+  border-color: var(--accent-green);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
 }
 
 .modern-chord-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
+
+/* Active illuminated pad animation */
+.modern-chord-btn.chord-group-t:active { background: rgba(8, 145, 178, 0.12); }
+.modern-chord-btn.chord-group-s:active { background: rgba(236, 72, 153, 0.12); }
+.modern-chord-btn.chord-group-d:active { background: rgba(139, 92, 246, 0.12); }
+.modern-chord-btn.chord-group-dt:active { background: rgba(99, 102, 241, 0.12); }
+.modern-chord-btn.chord-group-k:active { background: rgba(217, 119, 6, 0.12); }
+.modern-chord-btn.chord-group-dd:active { background: rgba(99, 102, 241, 0.12); }
+.modern-chord-btn.chord-group-alt:active { background: rgba(22, 163, 74, 0.12); }
 
 .modern-chord-btn.chromatic-btn {
   border-color: var(--accent-indigo-light);
@@ -1275,3 +1431,24 @@ html.dark .chord-secondary {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+
+/* 和弦水波纹扩散特效 */
+.chord-ripple {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  margin-top: -30px;
+  margin-left: -30px;
+}
+.chord-group-t .chord-ripple { background: rgba(6, 182, 212, 0.4); }
+.chord-group-s .chord-ripple { background: rgba(236, 72, 153, 0.4); }
+.chord-group-d .chord-ripple { background: rgba(139, 92, 246, 0.4); }
+.chord-group-dt .chord-ripple { background: rgba(99, 102, 241, 0.4); }
+.chord-group-k .chord-ripple { background: rgba(217, 119, 6, 0.4); }
+.chord-group-dd .chord-ripple { background: rgba(99, 102, 241, 0.4); }
+.chord-group-alt .chord-ripple { background: rgba(22, 163, 74, 0.4); }
