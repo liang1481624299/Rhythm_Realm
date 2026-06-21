@@ -3,6 +3,7 @@ import secrets
 import mimetypes
 import struct
 import io
+
 # 强制注册 WOFF2 字体类型，防止 Safari 拦截
 mimetypes.add_type('font/woff2', '.woff2')
 mimetypes.add_type('application/font-woff2', '.woff2')
@@ -15,10 +16,12 @@ from pydantic import BaseModel
 from typing import List, Optional
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from tonality import KEY_REGISTRY, transpose_dna, spell_midi
-from dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
-from engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, v_to_tuple
-from rules import evaluate_voicing
+from apps.sposobin.tonality import KEY_REGISTRY, transpose_dna, spell_midi
+from apps.sposobin.dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
+from apps.sposobin.engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, \
+    v_to_tuple
+from apps.sposobin.rules import evaluate_voicing
+from apps.sposobin.grading import grade_chord_sequence, recognize_harmony_marks
 
 # ⚡ V1.2 专业升级版：注入全量声部对齐与熔断机制
 app = FastAPI(title="Sposobin Harmony Engine V1.3")
@@ -26,13 +29,14 @@ app = FastAPI(title="Sposobin Harmony Engine V1.3")
 # [管理看板] 核心指标内存计数器
 SERVER_METRICS = {
     "total_requests": 0,
-    "bytes_ingress": 0,    # 上行流量
-    "bytes_egress": 0,     # 下行流量
-    "unique_ips": set()    # 独立使用人数
+    "bytes_ingress": 0,  # 上行流量
+    "bytes_egress": 0,  # 下行流量
+    "unique_ips": set()  # 独立使用人数
 }
 
 # 🌟 统一收集断链死胡同与错题上报池
 GLOBAL_ISSUES_POOL = []
+
 
 # [流量监控中间件] 拦截所有流量进行精准测算
 class TrafficMonitorMiddleware(BaseHTTPMiddleware):
@@ -44,29 +48,31 @@ class TrafficMonitorMiddleware(BaseHTTPMiddleware):
         content_length_in = request.headers.get("content-length")
         if content_length_in:
             SERVER_METRICS["bytes_ingress"] += int(content_length_in)
-        
+
         response = await call_next(request)
 
         content_length_out = response.headers.get("content-length")
         if content_length_out:
             SERVER_METRICS["bytes_egress"] += int(content_length_out)
-            
+
         return response
+
 
 app.add_middleware(TrafficMonitorMiddleware)
 app.add_middleware(GZipMiddleware, minimum_size=200)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # [安全校验] 管理员账号密码保护
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "SposobinSecure2026"  
+ADMIN_PASSWORD = "SposobinSecure2026"
 
 security = HTTPBasic()
+
 
 def authenticate_admin(credentials: HTTPBasicCredentials = Depends(security)):
     is_user_ok = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
@@ -79,12 +85,14 @@ def authenticate_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
+
 def format_bytes(b: int) -> str:
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if b < 1024:
             return f"{b:.2f} {unit}"
         b /= 1024
     return f"{b:.2f} PB"
+
 
 # 新增：提报信息数据模型
 class IssueReportRequest(BaseModel):
@@ -94,12 +102,13 @@ class IssueReportRequest(BaseModel):
     history: List[dict]
     source_info: str
 
+
 # 新增：接收用户错题上报 API 接口
 @app.post("/api/submit_issue")
 def submit_issue(req: IssueReportRequest):
     history_path = " -> ".join([item["chord"] for item in req.history]) if req.history else "无(第一步断链)"
     melody_str = ", ".join(map(str, req.target_melody)) if req.target_melody else "未录入"
-    
+
     GLOBAL_ISSUES_POOL.append({
         "mode": req.mode,
         "key_name": req.key_name,
@@ -109,6 +118,7 @@ def submit_issue(req: IssueReportRequest):
     })
     return {"status": "success", "message": "已成功记录至云端监控面板"}
 
+
 # [管理监控后台看板视图]
 @app.get("/admin", response_class=HTMLResponse)
 def get_admin_dashboard(username: str = Depends(authenticate_admin)):
@@ -116,7 +126,7 @@ def get_admin_dashboard(username: str = Depends(authenticate_admin)):
     total_reqs = SERVER_METRICS["total_requests"]
     traffic_in = format_bytes(SERVER_METRICS["bytes_ingress"])
     traffic_out = format_bytes(SERVER_METRICS["bytes_egress"])
-    
+
     table_rows = ""
     if not GLOBAL_ISSUES_POOL:
         table_rows = """<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">🎉 暂无用户提报断链死胡同或教材错题</td></tr>"""
@@ -206,7 +216,7 @@ def get_admin_dashboard(username: str = Depends(authenticate_admin)):
 
 
 class EngineRequest(BaseModel):
-    mode: str 
+    mode: str
     key_name: str
     target_melody: List[int]
     history: List[dict]
@@ -223,6 +233,7 @@ CHORD_FAMILIES = {
     "D₇": ["D₇", "D₇不完全"]
 }
 
+
 def get_base_chord(chord_name):
     """将底层的变体和弦（如 T不完全）折叠回显示用的基础和弦（如 T）"""
     for base, variants in CHORD_FAMILIES.items():
@@ -230,8 +241,10 @@ def get_base_chord(chord_name):
             return base
     return chord_name
 
+
 # 全局 DAG 缓存池
 GLOBAL_DAG_CACHE = {}
+
 
 def get_cached_dag(key_name, target_melody, active_dna_db, key_info):
     if not target_melody: return None
@@ -242,16 +255,18 @@ def get_cached_dag(key_name, target_melody, active_dna_db, key_info):
     GLOBAL_DAG_CACHE[cache_key] = dag
     return dag
 
+
 def format_chord_name(name):
     clean_name = name.replace("♮⁵", "").replace("♭⁵", "").replace("不完全", "").replace("双三", "")
     base_name = clean_name.split('/')[0] if '/' in clean_name else clean_name
     suffix = "/" + clean_name.split('/')[1] if '/' in clean_name else ""
     core = base_name
-    if "♭⁵" in name or ("♭" in base_name and "VI" not in base_name): 
+    if "♭⁵" in name or ("♭" in base_name and "VI" not in base_name):
         core += "♭5" if "♭⁵" in name else "♭"
-    elif "♮⁵" in name: 
+    elif "♮⁵" in name:
         core += "♮5"
     return core + suffix
+
 
 def get_render_data(history, key_info, target_melody, pending_note):
     render_nodes = []
@@ -260,8 +275,10 @@ def get_render_data(history, key_info, target_melody, pending_note):
     sigs = []
     if sig_count > 0 and sig_type != "none":
         positions = {"sharp": {"treble": [40, 55, 35, 50, 65, 45, 60], "bass": [180, 195, 175, 190, 205, 185, 200]},
-                     "flat":  {"treble": [60, 45, 65, 50, 70, 55, 75], "bass": [200, 185, 205, 190, 210, 195, 215]}}
-        for i in range(sig_count): sigs.append({"sym": "♯" if sig_type == "sharp" else "♭", "t_y": positions[sig_type]["treble"][i], "b_y": positions[sig_type]["bass"][i]})
+                     "flat": {"treble": [60, 45, 65, 50, 70, 55, 75], "bass": [200, 185, 205, 190, 210, 195, 215]}}
+        for i in range(sig_count): sigs.append(
+            {"sym": "♯" if sig_type == "sharp" else "♭", "t_y": positions[sig_type]["treble"][i],
+             "b_y": positions[sig_type]["bass"][i]})
 
     key_sig_alts = {s: 0 for s in range(7)}
     if sig_type == "sharp":
@@ -273,8 +290,8 @@ def get_render_data(history, key_info, target_melody, pending_note):
     for index, item in enumerate(history):
         chord = item["chord"]
         voices = item["voices"]
-        node = {"type": "history", "chord_display": format_chord_name(chord), "notes": [], "original_index": index} 
-        
+        node = {"type": "history", "chord_display": format_chord_name(chord), "notes": [], "original_index": index}
+
         y_positions = {}
         for v_name, is_bass in [('S', False), ('A', False), ('T', True), ('B', True)]:
             midi = voices[v_name]
@@ -297,48 +314,58 @@ def get_render_data(history, key_info, target_melody, pending_note):
 
             is_shifted = False
             for other_voice, other_y in y_positions.items():
-                if other_y is not None and other_voice != v_name and other_y - y == 5: 
-                    is_shifted = True; break
+                if other_y is not None and other_voice != v_name and other_y - y == 5:
+                    is_shifted = True;
+                    break
             note_x = 13 if is_shifted else 0
-            
+
             acc_str, acc_x = "", 0
             if v_name in drawn_accidentals:
                 _, abs_alt, acc_key = drawn_accidentals[v_name]
                 acc_str = {-2: "♭♭", -1: "♭", 0: "♮", 1: "♯", 2: "x"}.get(abs_alt, "")
                 running_accidentals[acc_key] = abs_alt
-                acc_x = -3 if is_shifted else (-28 if any(oy < y and y - oy <= 11 for ov, (oy, _, _) in drawn_accidentals.items() if ov != v_name) else -18)
+                acc_x = -3 if is_shifted else (-28 if any(
+                    oy < y and y - oy <= 11 for ov, (oy, _, _) in drawn_accidentals.items() if ov != v_name) else -18)
 
             ledgers = []
-            if not is_bass: ledgers = list(range(90, y+1, 10)) if y >= 90 else (list(range(30, y-1, -10)) if y <= 30 else [])
-            else: ledgers = list(range(160, y-1, -10)) if y <= 160 else (list(range(220, y+1, 10)) if y >= 220 else [])
+            if not is_bass:
+                ledgers = list(range(90, y + 1, 10)) if y >= 90 else (list(range(30, y - 1, -10)) if y <= 30 else [])
+            else:
+                ledgers = list(range(160, y - 1, -10)) if y <= 160 else (
+                    list(range(220, y + 1, 10)) if y >= 220 else [])
 
-            node["notes"].append({"v": v_name, "y": y, "x": note_x, "acc": acc_str, "acc_x": acc_x, "ledgers": ledgers, "is_bass": is_bass})
+            node["notes"].append({"v": v_name, "y": y, "x": note_x, "acc": acc_str, "acc_x": acc_x, "ledgers": ledgers,
+                                  "is_bass": is_bass})
         render_nodes.append(node)
-        
+
     if pending_note is not None:
         letter, abs_step, abs_alt, octave = spell_midi(pending_note, key_info, "")
         y = PITCH_Y.get(f"{letter}{octave}", 90)
-        ledgers = list(range(90, y+1, 10)) if y >= 90 else (list(range(30, y-1, -10)) if y <= 30 else [])
-        render_nodes.append({"type": "pending", "chord_display": "?", "notes": [{"v": "S", "y": y, "x": 0, "acc": "", "acc_x": 0, "ledgers": ledgers, "is_bass": False}]})
-        
+        ledgers = list(range(90, y + 1, 10)) if y >= 90 else (list(range(30, y - 1, -10)) if y <= 30 else [])
+        render_nodes.append({"type": "pending", "chord_display": "?", "notes": [
+            {"v": "S", "y": y, "x": 0, "acc": "", "acc_x": 0, "ledgers": ledgers, "is_bass": False}]})
+
     elif target_melody and key_info.get("app_mode") in ["SOPRANO", "BASS"] and len(history) < len(target_melody):
         is_bass_mode = key_info.get("app_mode") == "BASS"
         v_name = "B" if is_bass_mode else "S"
-        
+
         for i in range(len(history), len(target_melody)):
             letter, abs_step, abs_alt, octave = spell_midi(target_melody[i], key_info, "")
             suffix = "_bass" if is_bass_mode else ""
             y = PITCH_Y.get(f"{letter}{octave}{suffix}", 160 if is_bass_mode else 90)
-            
+
             ledgers = []
             if is_bass_mode:
-                ledgers = list(range(160, y-1, -10)) if y <= 160 else (list(range(220, y+1, 10)) if y >= 220 else [])
+                ledgers = list(range(160, y - 1, -10)) if y <= 160 else (
+                    list(range(220, y + 1, 10)) if y >= 220 else [])
             else:
-                ledgers = list(range(90, y+1, 10)) if y >= 90 else (list(range(30, y-1, -10)) if y <= 30 else [])
-                
-            render_nodes.append({"type": "target", "chord_display": "", "notes": [{"v": v_name, "y": y, "x": 0, "acc": "", "acc_x": 0, "ledgers": ledgers, "is_bass": is_bass_mode}]})
-            
+                ledgers = list(range(90, y + 1, 10)) if y >= 90 else (list(range(30, y - 1, -10)) if y <= 30 else [])
+
+            render_nodes.append({"type": "target", "chord_display": "", "notes": [
+                {"v": v_name, "y": y, "x": 0, "acc": "", "acc_x": 0, "ledgers": ledgers, "is_bass": is_bass_mode}]})
+
     return {"sigs": sigs, "nodes": render_nodes}
+
 
 @app.post("/api/sync_state")
 def sync_state(req: EngineRequest):
@@ -346,17 +373,18 @@ def sync_state(req: EngineRequest):
     key_info["app_mode"] = req.mode
     base_db = MAJOR_DNA if key_info["type"] == "MAJOR" else MINOR_DNA
     active_dna_db = transpose_dna(base_db, key_info["shift"])
-    
-    debug_msg = None 
+
+    debug_msg = None
 
     if req.action_chord:
         target_chord_base = req.action_chord
         target_variants = CHORD_FAMILIES.get(target_chord_base, [target_chord_base])
-        
+
         shift = key_info["shift"]
         v_shift = shift if shift <= 3 else shift - 12
         ideal_S, ideal_A, ideal_T, ideal_B = 72 + v_shift, 65 + v_shift, 60 + v_shift, 48 + v_shift
-        score_initial = lambda v: abs(v['S']-ideal_S)*1.5 + abs(v['A']-ideal_A) + abs(v['T']-ideal_T) + abs(v['B']-ideal_B)
+        score_initial = lambda v: abs(v['S'] - ideal_S) * 1.5 + abs(v['A'] - ideal_A) + abs(v['T'] - ideal_T) + abs(
+            v['B'] - ideal_B)
 
         if req.mode in ["SOPRANO", "BASS"] and req.target_melody:
             dag_layers = get_cached_dag(req.key_name, req.target_melody, active_dna_db, key_info)
@@ -364,11 +392,11 @@ def sync_state(req: EngineRequest):
                 step = len(req.history)
                 valid_states = []
                 for tc in target_variants:
-                    if step == 0: 
+                    if step == 0:
                         valid_states.extend([s for s in dag_layers[0].keys() if s[0] == tc])
                     else:
                         last_h = req.history[-1]
-                        state_data = dag_layers[step-1].get((last_h['chord'], v_to_tuple(last_h['voices'])))
+                        state_data = dag_layers[step - 1].get((last_h['chord'], v_to_tuple(last_h['voices'])))
                         if state_data:
                             valid_states.extend([s for s in state_data['next'] if s[0] == tc])
                 if valid_states:
@@ -378,17 +406,18 @@ def sync_state(req: EngineRequest):
                         if "不完全" in s[0] or "双三" in s[0]:
                             base += 100
                         return base
+
                     best_state = min(valid_states, key=score_with_integrity)
                     req.history.append({"chord": best_state[0], "voices": tuple_to_v(best_state[1])})
 
         elif req.mode == "COMPOSE" and req.pending_note is not None:
             tgt_s = req.pending_note
             target_variants = CHORD_FAMILIES.get(req.action_chord, [req.action_chord])
-            
+
             if not req.history:
                 valid_states = []
                 for tc in target_variants:
-                    for v in get_chord_candidates(tc, active_dna_db, tgt_s): 
+                    for v in get_chord_candidates(tc, active_dna_db, tgt_s):
                         valid_states.append((tc, v_to_tuple(v)))
                 if valid_states:
                     best_state = min(valid_states, key=lambda s: score_initial(tuple_to_v(s[1])))
@@ -401,10 +430,11 @@ def sync_state(req: EngineRequest):
                 for tc in target_variants:
                     chord_sequence = [item["chord"] for item in req.history] + [tc]
                     temp_melody = req.target_melody + [tgt_s]
-                    
-                    global_path = calculate_best_voicing(chord_sequence, req.history[0]["voices"], active_dna_db, key_info, temp_melody)
-                    
-                    if global_path: 
+
+                    global_path = calculate_best_voicing(chord_sequence, req.history[0]["voices"], active_dna_db,
+                                                         key_info, temp_melody)
+
+                    if global_path:
                         last_c = req.history[-1]["chord"]
                         last_v_optimized = global_path[-2]
                         curr_v = global_path[-1]
@@ -434,6 +464,7 @@ def sync_state(req: EngineRequest):
                         if "不完全" in s[0] or "双三" in s[0]:
                             base += 100
                         return base
+
                     best_state = min(valid_states, key=score_with_integrity)
                     req.history.append({"chord": best_state[0], "voices": tuple_to_v(best_state[1])})
             else:
@@ -441,10 +472,11 @@ def sync_state(req: EngineRequest):
                 best_cost = 999999
                 for tc in target_variants:
                     chord_sequence = [item["chord"] for item in req.history] + [tc]
-                    global_path = calculate_best_voicing(chord_sequence, req.history[0]["voices"], active_dna_db, key_info, None)
-                    if global_path: 
+                    global_path = calculate_best_voicing(chord_sequence, req.history[0]["voices"], active_dna_db,
+                                                         key_info, None)
+                    if global_path:
                         last_c = req.history[-1]["chord"]
-                        last_v_optimized = global_path[-2] 
+                        last_v_optimized = global_path[-2]
                         curr_v = global_path[-1]
                         cost = evaluate_voicing(last_v_optimized, curr_v, last_c, tc, key_info)
                         if cost < best_cost:
@@ -457,11 +489,11 @@ def sync_state(req: EngineRequest):
 
     next_chords = []
     is_completed = False
-    
+
     if req.mode in ["SOPRANO", "BASS"] and req.target_melody:
         if len(req.history) == len(req.target_melody):
             is_completed = True
-            
+
         dag = get_cached_dag(req.key_name, req.target_melody, active_dna_db, key_info)
         if not dag or len(dag) < len(req.target_melody):
             logs = []
@@ -469,7 +501,7 @@ def sync_state(req: EngineRequest):
             logs.append(f"调性: {key_info['type']} / 根音偏移: {key_info['shift']}")
             logs.append(f"目标序列 (MIDI): {req.target_melody}")
             logs.append("-" * 50)
-            
+
             current_layer = {}
             start_index = 0
             if not req.history:
@@ -478,7 +510,8 @@ def sync_state(req: EngineRequest):
                 tgt_b = req.target_melody[0] if req.mode == "BASS" else None
                 cands = get_chord_candidates(start_chord, active_dna_db, target_s=tgt_s, target_b=tgt_b)
                 for v in cands: current_layer[(start_chord, v_to_tuple(v))] = {start_chord}
-                logs.append(f"[节点 0] 目标 MIDI={req.target_melody[0]}, 初始 '{start_chord}' 合法状态数: {len(current_layer)}")
+                logs.append(
+                    f"[节点 0] 目标 MIDI={req.target_melody[0]}, 初始 '{start_chord}' 合法状态数: {len(current_layer)}")
             else:
                 last_h = req.history[-1]
                 start_index = len(req.history)
@@ -495,42 +528,47 @@ def sync_state(req: EngineRequest):
                     all_possible_nexts.update(active_dna_db.get(c_name, {}).get("next", []))
                 cand_cache = {}
                 for nxt_chord in all_possible_nexts:
-                    if nxt_chord in active_dna_db: cand_cache[nxt_chord] = get_chord_candidates(nxt_chord, active_dna_db, target_s=tgt_s, target_b=tgt_b)
+                    if nxt_chord in active_dna_db: cand_cache[nxt_chord] = get_chord_candidates(nxt_chord,
+                                                                                                active_dna_db,
+                                                                                                target_s=tgt_s,
+                                                                                                target_b=tgt_b)
                 for (c_name, v_tup), _ in current_layer.items():
                     possible_nexts = active_dna_db.get(c_name, {}).get("next", [])
                     for nxt_chord in possible_nexts:
                         if nxt_chord not in active_dna_db: continue
                         for nxt_v in cand_cache.get(nxt_chord, []):
-                            if evaluate_voicing(tuple_to_v(v_tup), nxt_v, c_name, nxt_chord, key_info) < 999999: 
+                            if evaluate_voicing(tuple_to_v(v_tup), nxt_v, c_name, nxt_chord, key_info) < 999999:
                                 next_layer[(nxt_chord, v_to_tuple(nxt_v))] = True
                 logs.append(f"[节点 {i}] 目标 MIDI={tgt_note}, 存活的合法连接状态数: {len(next_layer)}")
                 if not next_layer:
                     logs.append("-" * 50)
                     logs.append(f"❌ 连通性异常：路径已断开")
                     logs.append(f"中断点: 节点 {i} (目标 MIDI: {tgt_note})")
-                    logs.append(f"在上一个节点 (MIDI: {req.target_melody[i-1]}) 时，可用的合法配置包含：")
+                    logs.append(f"在上一个节点 (MIDI: {req.target_melody[i - 1]}) 时，可用的合法配置包含：")
                     surviving_chords = {}
-                    for c_name, _ in current_layer.keys(): surviving_chords[c_name] = surviving_chords.get(c_name, 0) + 1
+                    for c_name, _ in current_layer.keys(): surviving_chords[c_name] = surviving_chords.get(c_name,
+                                                                                                           0) + 1
                     for c, count in surviving_chords.items(): logs.append(f" - {c}: {count} 个有效声部排列")
                     break
                 current_layer = next_layer
             debug_msg = "\n".join(logs)
         else:
-            if not req.history: next_chords = list(set([s[0] for s in dag[0].keys()]))
+            if not req.history:
+                next_chords = list(set([s[0] for s in dag[0].keys()]))
             elif len(req.history) < len(req.target_melody):
                 last_item = req.history[-1]
-                state_data = dag[len(req.history)-1].get((last_item['chord'], v_to_tuple(last_item['voices'])))
+                state_data = dag[len(req.history) - 1].get((last_item['chord'], v_to_tuple(last_item['voices'])))
                 if state_data: next_chords = list(set([s[0] for s in state_data['next']]))
 
     elif not req.history:
         if req.mode == "COMPOSE" and req.pending_note is not None:
             for c_name in active_dna_db.keys():
                 if get_chord_candidates(c_name, active_dna_db, target_s=req.pending_note): next_chords.append(c_name)
-        elif req.mode == "FREE": 
+        elif req.mode == "FREE":
             next_chords = list(active_dna_db.keys())
     else:
         last_item = req.history[-1]
-        
+
         if req.mode == "COMPOSE":
             if req.pending_note is not None:
                 last_c = last_item["chord"]
@@ -539,15 +577,16 @@ def sync_state(req: EngineRequest):
                     possible_nexts.add(nxt)
                     possible_nexts.update(get_chord_siblings(nxt, active_dna_db))
                 possible_nexts.update(get_chord_siblings(last_c, active_dna_db))
-                
+
                 for nxt_c in possible_nexts:
                     if nxt_c in active_dna_db:
                         temp_seq = [item["chord"] for item in req.history] + [nxt_c]
                         temp_mel = req.target_melody + [req.pending_note]
-                        
-                        if calculate_best_voicing(temp_seq, req.history[0]["voices"], active_dna_db, key_info, temp_mel):
+
+                        if calculate_best_voicing(temp_seq, req.history[0]["voices"], active_dna_db, key_info,
+                                                  temp_mel):
                             next_chords.append(nxt_c)
-                                
+
         elif req.mode == "FREE":
             last_c, last_v = last_item["chord"], last_item["voices"]
             possible_nexts = set()
@@ -555,12 +594,13 @@ def sync_state(req: EngineRequest):
                 possible_nexts.add(nxt)
                 possible_nexts.update(get_chord_siblings(nxt, active_dna_db))
             possible_nexts.update(get_chord_siblings(last_c, active_dna_db))
-            
+
             for nxt_c in possible_nexts:
                 if nxt_c in active_dna_db:
                     for nxt_v in get_chord_candidates(nxt_c, active_dna_db, None):
                         if evaluate_voicing(last_v, nxt_v, last_c, nxt_c, key_info) < 999999:
-                            next_chords.append(nxt_c); break
+                            next_chords.append(nxt_c);
+                            break
 
     folded_next_chords = set()
     for chord in next_chords:
@@ -578,16 +618,16 @@ def sync_state(req: EngineRequest):
         debug_msg = "⚠️ 死胡同警告：当前的声部排列导致前方无路可走！\n\n【诊断信息】\n引擎已经穷尽了所有合法的和声连接，但在严格遵守声部进行法则的前提下，无法找到下一步的合法排列。\n\n👉 建议：直接点击乐谱上历史节点进行【状态回退】！"
 
     diatonic = {
-        "主功能组 (T / t / DT)": [], 
-        "下属功能组 (S / s / TS_VI / VII)": [], 
+        "主功能组 (T / t / DT)": [],
+        "下属功能组 (S / s / TS_VI / VII)": [],
         "属功能组 (D / K)": []
     }
     chromatic = {
         "重属功能组 (DD)": [],
-        "导功能组 (Dᵥᵢᵢ)": [], 
+        "导功能组 (Dᵥᵢᵢ)": [],
         "变和弦组 (N / +6)": []
     }
-    
+
     for chord in next_chords:
         if "/" in chord and not chord.startswith(("It", "Ger", "Fr")):
             target_deg = chord.split('/')[1]
@@ -595,24 +635,24 @@ def sync_state(req: EngineRequest):
                 cat = f"副属和弦 (至 {target_deg} 级)"
             elif chord.startswith(("S", "s", "Sᵢᵢ", "sᵢᵢ")):
                 cat = f"副下属和弦 (至 {target_deg} 级)"
-            if cat not in chromatic: 
+            if cat not in chromatic:
                 chromatic[cat] = []
             chromatic[cat].append(chord)
         else:
-            if chord.startswith(("N", "It", "Ger", "Fr")): 
+            if chord.startswith(("N", "It", "Ger", "Fr")):
                 chromatic["变和弦组 (N / +6)"].append(chord)
-            elif chord.startswith("DD"): 
+            elif chord.startswith("DD"):
                 chromatic["重属功能组 (DD)"].append(chord)
-            elif chord.startswith("Dᵥᵢᵢ"): 
+            elif chord.startswith("Dᵥᵢᵢ"):
                 chromatic["导功能组 (Dᵥᵢᵢ)"].append(chord)
-            elif chord.startswith(("T", "t", "DT")): 
+            elif chord.startswith(("T", "t", "DT")):
                 diatonic["主功能组 (T / t / DT)"].append(chord)
-            elif chord.startswith(("S", "s", "VI", "♭VI", "sᵢᵢ", "Sᵢᵢ", "VII", "♭VII")): 
+            elif chord.startswith(("S", "s", "VI", "♭VI", "sᵢᵢ", "Sᵢᵢ", "VII", "♭VII")):
                 diatonic["下属功能组 (S / s / TS_VI / VII)"].append(chord)
-            elif chord.startswith(("D", "K")): 
+            elif chord.startswith(("D", "K")):
                 diatonic["属功能组 (D / K)"].append(chord)
-            else: 
-                if "特殊扩展变音组" not in chromatic: 
+            else:
+                if "特殊扩展变音组" not in chromatic:
                     chromatic["特殊扩展变音组"] = []
                 chromatic["特殊扩展变音组"].append(chord)
 
@@ -621,15 +661,16 @@ def sync_state(req: EngineRequest):
         "key_name": req.key_name,
         "history": req.history,
         "target_melody": req.target_melody,
-        "pending_note": req.pending_note, 
+        "pending_note": req.pending_note,
         "renderData": get_render_data(req.history, key_info, req.target_melody, req.pending_note),
         "categories": {
-            "diatonic": {k: v for k, v in diatonic.items() if v}, 
+            "diatonic": {k: v for k, v in diatonic.items() if v},
             "chromatic": {k: v for k, v in chromatic.items() if v}
         },
         "debug_message": debug_msg,
-        "is_completed": is_completed 
+        "is_completed": is_completed
     }
+
 
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
@@ -692,10 +733,10 @@ def export_musicxml(req: EngineRequest):
 
         # 传统四声部在大谱表中的标准图层配置 (Voice / Staff / Stem 方向)
         voices_config = [
-            {"name": "S", "voice": "1", "staff": "1", "stem": "up"},    # 女高音：上谱表，符干朝上
+            {"name": "S", "voice": "1", "staff": "1", "stem": "up"},  # 女高音：上谱表，符干朝上
             {"name": "A", "voice": "2", "staff": "1", "stem": "down"},  # 女低音：上谱表，符干朝下
-            {"name": "T", "voice": "3", "staff": "2", "stem": "up"},    # 男高音：下谱表，符干朝上
-            {"name": "B", "voice": "4", "staff": "2", "stem": "down"}   # 男低音：下谱表，符干朝下
+            {"name": "T", "voice": "3", "staff": "2", "stem": "up"},  # 男高音：下谱表，符干朝上
+            {"name": "B", "voice": "4", "staff": "2", "stem": "down"}  # 男低音：下谱表，符干朝下
         ]
 
         current_measure_duration = len(m_chords)
@@ -705,11 +746,11 @@ def export_musicxml(req: EngineRequest):
             for item in m_chords:
                 chord_name = item["chord"]
                 midi_note = item["voices"][v_name]
-                
+
                 # 🌟🌟🌟 在这里插入：只在高音声部 (v_idx == 0) 时，添加顶部和弦文本标记
                 if v_idx == 0:
                     display_chord = format_chord_name(chord_name)  # 复用已有的格式化函数清洗底标
-                    
+
                     direction = ET.SubElement(measure, "direction", placement="above")
                     dir_type = ET.SubElement(direction, "direction-type")
                     words = ET.SubElement(dir_type, "words", font_family="Lora", font_weight="normal", font_size="12")
@@ -743,19 +784,19 @@ def export_musicxml(req: EngineRequest):
     raw_xml = ET.tostring(root, encoding="utf-8")
     parsed_xml = minidom.parseString(raw_xml)
     pretty_xml = parsed_xml.toprettyxml(indent="  ")
-    
+
     # 🌟 修复点：加上了极其关键的 DOCTYPE 声明！
     musicxml_header = (
         '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
         '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">\n'
     )
-    
+
     # 更安全地移除 minidom 默认生成的简版 xml 头
     xml_lines = pretty_xml.split("\n")
     if xml_lines[0].startswith("<?xml"):
         body_start = pretty_xml.index("\n") + 1
         pretty_xml = pretty_xml[body_start:]
-    
+
     final_xml_content = musicxml_header + pretty_xml
     return {"xml": final_xml_content}
 
@@ -855,8 +896,8 @@ def export_midi(req: EngineRequest):
     # Header Chunk: MThd
     midi_buffer.write(b'MThd')
     midi_buffer.write(struct.pack('>H', 6))  # header length
-    midi_buffer.write(struct.pack('>H', 0))   # format 0 (single track)
-    midi_buffer.write(struct.pack('>H', 1))   # number of tracks
+    midi_buffer.write(struct.pack('>H', 0))  # format 0 (single track)
+    midi_buffer.write(struct.pack('>H', 1))  # number of tracks
     midi_buffer.write(struct.pack('>H', ticks_per_beat))  # ticks per beat
 
     # Track Chunk: MTrk
@@ -868,3 +909,48 @@ def export_midi(req: EngineRequest):
     # 返回二进制数据
     midi_buffer.seek(0)
     return {"midi": midi_buffer.getvalue()}
+
+
+# ==========================================
+# 拍照与手动批改 API 接口
+# ==========================================
+
+class GradeManualRequest(BaseModel):
+    key_name: str
+    chord_sequence: List[str]
+
+@app.post("/api/grade/manual")
+def grade_manual(req: GradeManualRequest):
+    result = grade_chord_sequence(req.chord_sequence, req.key_name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+class GradePhotoRequest(BaseModel):
+    key_name: str
+    image_data: str  # base64
+
+@app.post("/api/grade/photo")
+def grade_photo(req: GradePhotoRequest):
+    # 1. 识别图片中的和声标记
+    ocr_res = recognize_harmony_marks(req.image_data)
+    
+    # 2. 如果识别成功且有和弦序列，进行评分
+    if ocr_res.get("success") and ocr_res.get("chord_sequence"):
+        grade_res = grade_chord_sequence(ocr_res["chord_sequence"], req.key_name)
+        if "error" in grade_res:
+            return {
+                "recognition_info": ocr_res,
+                "error": grade_res["error"]
+            }
+        return {
+            "recognition_info": ocr_res,
+            **grade_res
+        }
+    
+    # 3. 否则只返回识别结果（可能需要用户手动输入/微调）
+    return {
+        "recognition_info": ocr_res,
+        "error": ocr_res.get("error", "未识别到明确的和弦序列")
+    }
+

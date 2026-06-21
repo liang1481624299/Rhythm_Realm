@@ -1,5 +1,5 @@
 # rules.py
-from tonality import spell_midi
+from apps.sposobin.tonality import spell_midi
 
 def evaluate_voicing(old_voices, new_voices, last_chord_name, target_chord_name, key_info):
     """

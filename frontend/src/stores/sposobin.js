@@ -43,6 +43,7 @@ export const sposobinStore = reactive({
   bpm: 100,
   isPlaying: false,
   playbackTimeouts: [],
+  currentRhythm: 'quarter',
 
   subscribe(fn) {
     _subscribers.push(fn);
@@ -63,6 +64,14 @@ export const sposobinStore = reactive({
   async syncBackend(actionChord = null) {
     this.stopSequence();
 
+    // 备份现有历史记录中每个和弦的节奏属性
+    const indexRhythmMap = {};
+    this.history.forEach((item, idx) => {
+      if (item.rhythm) {
+        indexRhythmMap[idx] = { ...item.rhythm };
+      }
+    });
+
     try {
       const res = await fetch('/api/sync_state', {
         method: 'POST',
@@ -78,6 +87,31 @@ export const sposobinStore = reactive({
         })
       });
       const data = await res.json();
+
+      // 恢复旧和弦的节奏，并为新和弦应用当前选中的节奏
+      if (data && data.history) {
+        const RHYTHM_DURATIONS = {
+          whole: 4.0, half: 2.0, quarter: 1.0, eighth: 0.5, sixteenth: 0.25, thirtySecond: 0.125, sixtyFourth: 0.0625,
+          halfDot: 3.0, quarterDot: 1.5, eighthDot: 0.75, sixteenthDot: 0.375, thirtySecondDot: 0.1875,
+          halfDoubleDot: 3.5, quarterDoubleDot: 1.75, eighthDoubleDot: 0.875, sixteenthDoubleDot: 0.4375,
+          restWhole: 4.0, restHalf: 2.0, restQuarter: 1.0, restEighth: 0.5, restSixteenth: 0.25, restThirtySecond: 0.125
+        };
+
+        data.history.forEach((item, idx) => {
+          if (indexRhythmMap[idx]) {
+            item.rhythm = indexRhythmMap[idx];
+          } else if (idx === this.history.length && actionChord) {
+            // 这是新添加的和弦，赋予当前选中的节奏
+            const curKey = this.currentRhythm || 'quarter';
+            item.rhythm = {
+              key: curKey,
+              duration: RHYTHM_DURATIONS[curKey] || 1.0,
+              isRest: curKey.startsWith('rest')
+            };
+          }
+        });
+      }
+
       Object.assign(this, data);
       _notify();
       return data;

@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "gsap": "^3.15.0",
+    "tailwindcss": "^4.3.1",
     "tone": "^15.1.22",
     "vue": "^3.5.34"
   },

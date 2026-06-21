@@ -1,45 +1,43 @@
 // 关于页面：作者信息 + 联系方式
 export function renderAbout(container) {
   container.innerHTML = `
-    <section class="page-enter max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <section class="page-enter about-layout">
       <!-- 个人信息卡片 -->
-      <header class="glass-card p-6 sm:p-8">
-        <div class="flex items-start gap-4 sm:gap-6">
-          <!-- 头像 -->
-          <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-cyan-400 via-purple-400 to-pink-400 grid place-items-center text-white text-3xl sm:text-4xl font-bold shadow-lg">
-            D
-          </div>
-          <div class="flex-1 min-w-0">
-            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Dylan Liang</h1>
-            <p class="mt-1 text-sm sm:text-base text-cyan-600 dark:text-cyan-300 font-medium">开发者 / Developer</p>
-            <p class="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-              徵羽乐界 (Rhythm Realm) 的创建者，专注于音乐理论与技术的结合。
-            </p>
-          </div>
+      <header class="glass-card profile-card">
+        <!-- 头像 -->
+        <div class="profile-avatar">
+          D
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <h1 class="profile-name">Dylan Liang</h1>
+          <p class="profile-role">开发者 / Developer</p>
+          <p class="profile-bio">
+            徵羽乐界 (Rhythm Realm) 的创建者，专注于音乐理论与技术的结合。
+          </p>
         </div>
       </header>
 
       <!-- 联系方式 -->
-      <article class="mt-6 glass-card p-6 sm:p-8">
-        <h2 class="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+      <article class="glass-card section-card">
+        <h2 class="section-title-bar">
+          <span class="section-title-dot dot-cyan"></span>
           联系方式
         </h2>
-        <div class="space-y-3">
+        <div class="contact-list">
           <!-- GitHub -->
           <a
             href="https://github.com/liang1481624299"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/30 dark:border-white/5 transition-all hover:-translate-y-0.5"
+            class="contact-link"
           >
-            <div class="flex items-center gap-3">
-              <span class="grid place-items-center w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900">
+            <div class="contact-item-left">
+              <span class="contact-icon-box" style="background: #0f172a;">
                 ${githubIcon(20)}
               </span>
               <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-white">GitHub</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">@liang1481624299</p>
+                <p class="contact-link-title">GitHub</p>
+                <p class="contact-link-desc">@liang1481624299</p>
               </div>
             </div>
             ${externalIcon(16)}
@@ -50,15 +48,15 @@ export function renderAbout(container) {
             href="https://space.bilibili.com/"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/30 dark:border-white/5 transition-all hover:-translate-y-0.5"
+            class="contact-link"
           >
-            <div class="flex items-center gap-3">
-              <span class="grid place-items-center w-10 h-10 rounded-xl bg-[#00A1D6] text-white">
+            <div class="contact-item-left">
+              <span class="contact-icon-box" style="background: #00A1D6;">
                 ${bilibiliIcon(20)}
               </span>
               <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-white">哔哩哔哩</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Bilibili</p>
+                <p class="contact-link-title">哔哩哔哩</p>
+                <p class="contact-link-desc">Bilibili</p>
               </div>
             </div>
             ${externalIcon(16)}
@@ -67,15 +65,15 @@ export function renderAbout(container) {
           <!-- 邮箱 1 -->
           <a
             href="mailto:shiroko@feishu.millennium.dpdns.org"
-            class="group flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/30 dark:border-white/5 transition-all hover:-translate-y-0.5"
+            class="contact-link"
           >
-            <div class="flex items-center gap-3">
-              <span class="grid place-items-center w-10 h-10 rounded-xl aurora-gradient text-white">
+            <div class="contact-item-left">
+              <span class="contact-icon-box aurora-gradient">
                 ${mailIcon(20)}
               </span>
               <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-white">Feishu 邮箱</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">shiroko@feishu.millennium.dpdns.org</p>
+                <p class="contact-link-title">Feishu 邮箱</p>
+                <p class="contact-link-desc">shiroko@feishu.millennium.dpdns.org</p>
               </div>
             </div>
             ${externalIcon(16)}
@@ -84,15 +82,15 @@ export function renderAbout(container) {
           <!-- 邮箱 2 -->
           <a
             href="mailto:shiroko@tencent.millennium.dpdns.org"
-            class="group flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 border border-white/30 dark:border-white/5 transition-all hover:-translate-y-0.5"
+            class="contact-link"
           >
-            <div class="flex items-center gap-3">
-              <span class="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-cyan-400 text-white">
+            <div class="contact-item-left">
+              <span class="contact-icon-box" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
                 ${mailIcon(20)}
               </span>
               <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-white">Tencent 邮箱</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">shiroko@tencent.millennium.dpdns.org</p>
+                <p class="contact-link-title">Tencent 邮箱</p>
+                <p class="contact-link-desc">shiroko@tencent.millennium.dpdns.org</p>
               </div>
             </div>
             ${externalIcon(16)}
@@ -101,24 +99,24 @@ export function renderAbout(container) {
       </article>
 
       <!-- 关于项目 -->
-      <article class="mt-6 glass-card p-6 sm:p-8">
-        <h2 class="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+      <article class="glass-card section-card">
+        <h2 class="section-title-bar">
+          <span class="section-title-dot dot-purple"></span>
           关于项目
         </h2>
-        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-          <span class="aurora-text font-semibold">徵羽乐界</span> (Rhythm Realm) 是一个音乐理论学习与创作平台。
+        <p class="profile-bio">
+          <span class="aurora-text" style="font-weight: 700;">徵羽乐界</span> (Rhythm Realm) 是一个音乐理论学习与创作平台。
           Sposobin 是其中的四部和声写作引擎，帮助用户学习和练习四部和声写作技巧。
         </p>
-        <div class="mt-4 flex flex-wrap gap-2">
-          <span class="px-3 py-1 rounded-full text-xs font-medium bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-200">音乐理论</span>
-          <span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200">四部和声</span>
-          <span class="px-3 py-1 rounded-full text-xs font-medium bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-200">Web Audio</span>
+        <div class="badge-group">
+          <span class="badge-item badge-cyan">音乐理论</span>
+          <span class="badge-item badge-purple">四部和声</span>
+          <span class="badge-item badge-pink">Web Audio</span>
         </div>
       </article>
 
       <!-- 返回按钮 -->
-      <div class="mt-8 flex justify-center">
+      <div style="margin-top: 2rem; display: flex; justify-content: center;">
         <a href="#/" class="btn-primary" data-nav>
           ${homeIcon(16)}
           <span>返回首页</span>
@@ -149,7 +147,7 @@ function mailIcon(size = 18) {
 }
 
 function externalIcon(size = 16) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 dark:text-slate-500 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors">
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); transition: color var(--transition-fast);">
     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
     <polyline points="15 3 21 3 21 9"></polyline>
     <line x1="10" y1="14" x2="21" y2="3"></line>
@@ -162,3 +160,4 @@ function homeIcon(size = 16) {
     <polyline points="9 22 9 12 15 12 15 22"></polyline>
   </svg>`;
 }
+

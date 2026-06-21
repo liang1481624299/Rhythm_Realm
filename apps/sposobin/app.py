@@ -1,6 +1,8 @@
 # app.py
 import secrets
 import mimetypes
+import struct
+import io
 # 强制注册 WOFF2 字体类型，防止 Safari 拦截
 mimetypes.add_type('font/woff2', '.woff2')
 mimetypes.add_type('application/font-woff2', '.woff2')
@@ -13,10 +15,10 @@ from pydantic import BaseModel
 from typing import List, Optional
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from tonality import KEY_REGISTRY, transpose_dna, spell_midi
-from dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
-from engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, v_to_tuple
-from rules import evaluate_voicing
+from apps.sposobin.tonality import KEY_REGISTRY, transpose_dna, spell_midi
+from apps.sposobin.dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
+from apps.sposobin.engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, v_to_tuple
+from apps.sposobin.rules import evaluate_voicing
 
 # ⚡ V1.2 专业升级版：注入全量声部对齐与熔断机制
 app = FastAPI(title="Sposobin Harmony Engine V1.3")
@@ -210,6 +212,7 @@ class EngineRequest(BaseModel):
     history: List[dict]
     pending_note: Optional[int] = None
     action_chord: Optional[str] = None
+    bpm: Optional[int] = 100
 
 
 # ==========================================
@@ -340,17 +343,7 @@ def get_render_data(history, key_info, target_melody, pending_note):
 
 @app.post("/api/sync_state")
 def sync_state(req: EngineRequest):
-    # 兼容简化的调性名称
     key_info = KEY_REGISTRY.get(req.key_name)
-    if not key_info:
-        # 尝试匹配简化名称
-        for key in KEY_REGISTRY:
-            if key.startswith(req.key_name):
-                key_info = KEY_REGISTRY[key]
-                break
-        if not key_info:
-            return {"error": f"未知的调性: {req.key_name}"}
-    key_info = dict(key_info)  # 复制以避免修改原始数据
     key_info["app_mode"] = req.mode
     base_db = MAJOR_DNA if key_info["type"] == "MAJOR" else MINOR_DNA
     active_dna_db = transpose_dna(base_db, key_info["shift"])
@@ -558,9 +551,10 @@ def sync_state(req: EngineRequest):
                         if evaluate_voicing(last_v, nxt_v, last_c, nxt_c, key_info) < 999999:
                             next_chords.append(nxt_c); break
 
-    # 移除折叠逻辑，保留所有和弦变体供前端显示
-    # 不再将 T不完全、T双三等变体折叠为基础和弦
-
+    folded_next_chords = set()
+    for chord in next_chords:
+        folded_next_chords.add(get_base_chord(chord))
+    next_chords = list(folded_next_chords)
 
     is_dead_end = False
     if len(req.history) > 0 and not is_completed and not debug_msg:
@@ -632,13 +626,7 @@ from xml.dom import minidom
 
 @app.post("/api/export_musicxml")
 def export_musicxml(req: EngineRequest):
-    # 兼容简化的调性名称
     key_info = KEY_REGISTRY.get(req.key_name)
-    if not key_info:
-        for key in KEY_REGISTRY:
-            if key.startswith(req.key_name):
-                key_info = KEY_REGISTRY[key]
-                break
     if not key_info or not req.history:
         raise HTTPException(status_code=400, detail="⚠️ 历史记录为空，无法导出乐谱")
 
@@ -761,88 +749,100 @@ def export_musicxml(req: EngineRequest):
     return {"xml": final_xml_content}
 
 
-# ==========================================
-# 拍照批改 API
-# ==========================================
-from grading import grade_chord_sequence, parse_chord_sequence, normalize_chord_name, recognize_harmony_marks, recognize_staff_notes
+def _write_var_len(value):
+    """写入可变长度的 MIDI 格式数值"""
+    bytes_list = []
+    v = value
+    bytes_list.insert(0, v & 0x7F)
+    v >>= 7
+    while v > 0:
+        bytes_list.insert(0, (v & 0x7F) | 0x80)
+        v >>= 7
+    return bytes(bytes_list)
 
-class ManualGradingRequest(BaseModel):
-    key_name: str
-    chord_sequence: List[str]
 
-class PhotoGradingRequest(BaseModel):
-    image_data: str  # base64 编码的图片
-    key_name: str
+@app.post("/api/export_midi")
+def export_midi(req: EngineRequest):
+    """导出 MIDI 文件"""
+    if not req.history:
+        raise HTTPException(status_code=400, detail="⚠️ 历史记录为空，无法导出 MIDI")
 
-@app.post("/api/grade/manual")
-def grade_manual(req: ManualGradingRequest):
-    """
-    手动输入和弦序列进行批改
-    """
-    # 解析和弦序列
-    chords = []
-    for item in req.chord_sequence:
-        normalized = normalize_chord_name(item)
-        chords.append(normalized)
-    
-    result = grade_chord_sequence(chords, req.key_name)
-    return result
+    key_info = KEY_REGISTRY.get(req.key_name)
+    if not key_info:
+        raise HTTPException(status_code=400, detail="⚠️ 未知的调性")
 
-@app.post("/api/grade/photo")
-def grade_photo(req: PhotoGradingRequest):
-    """
-    拍照上传图片进行批改
-    1. 使用 paddleOCR 识别图片中的手写和声标记
-    2. 使用 OpenCV 识别五线谱音符
-    3. 调用规则引擎进行评分
-    """
-    # 第一步：使用 OCR 识别和声标记
-    ocr_result = recognize_harmony_marks(req.image_data)
-    
-    # 第二步：识别五线谱音符
-    staff_result = recognize_staff_notes(req.image_data)
-    
-    # 构建识别信息
-    recognition_info = {
-        "ocr": ocr_result,
-        "staff": staff_result
-    }
-    
-    # 如果 OCR 没有成功识别，返回错误信息
-    if not ocr_result.get("success", False):
-        return {
-            "error": ocr_result.get("error", "OCR识别失败"),
-            "recognition_info": recognition_info
-        }
-    
-    # 获取识别出的和弦序列
-    chord_sequence = ocr_result.get("chord_sequence", [])
-    
-    if not chord_sequence:
-        return {
-            "error": "未能从图片中识别出和弦序列",
-            "recognition_info": recognition_info
-        }
-    
-    # 第三步：对识别出的和弦序列进行评分
-    result = grade_chord_sequence(chord_sequence, req.key_name)
-    result["recognition_info"] = recognition_info
-    
-    return result
+    # BPM 和时间分辨率
+    bpm = req.bpm if req.bpm else 100
+    ticks_per_beat = 480  # 每拍 480 ticks
+    ticks_per_quarter = ticks_per_beat
 
-@app.get("/api/grade/chord_aliases")
-def get_chord_aliases():
-    """
-    获取和弦别名列表，用于前端显示
-    """
-    return {
-        "aliases": {
-            "T": ["T", "主", "T主"],
-            "t": ["t", "小t", "主小"],
-            "S": ["S", "下属", "四"],
-            "s": ["s", "小下属", "小四"],
-            "D": ["D", "属", "五"],
-            "D7": ["D7", "D₇", "属七", "七"],
-            "K64": ["K64", "K₆₄", "终止四六", "K四六"]
-        }
-    }
+    # 每个和弦持续一个四分音符
+    chord_duration_ticks = ticks_per_quarter
+
+    # 速度 (velocity)
+    velocity = 80
+
+    # 采集所有需要的事件：[(absolute_tick, event_bytes)]
+    all_events = []
+
+    # 添加 tempo 事件 (0xFF 0x51 0x03 <microseconds per beat>)
+    microseconds_per_beat = int(60 * 1000000 / bpm)
+    tempo_bytes = [
+        (microseconds_per_beat >> 16) & 0xFF,
+        (microseconds_per_beat >> 8) & 0xFF,
+        microseconds_per_beat & 0xFF
+    ]
+    all_events.append((0, [0xFF, 0x51, 0x03] + tempo_bytes))
+
+    for chord_idx, item in enumerate(req.history):
+        start_tick = chord_idx * chord_duration_ticks
+
+        # 四声部：S, A, T, B
+        for v_name in ["S", "A", "T", "B"]:
+            midi_note = item["voices"][v_name]
+            # 确保 MIDI 音符在有效范围内 (0-127)
+            midi_note = max(0, min(127, midi_note))
+            note_on_tick = start_tick
+            note_off_tick = start_tick + chord_duration_ticks
+
+            # Note On event
+            all_events.append((note_on_tick, [0x90, midi_note, velocity]))
+            # Note Off event
+            all_events.append((note_off_tick, [0x80, midi_note, 0]))
+
+    # 添加结束事件 (end of track)
+    total_ticks = len(req.history) * chord_duration_ticks + chord_duration_ticks
+    all_events.append((total_ticks, [0xFF, 0x2F, 0x00]))
+
+    # 按 tick 排序
+    all_events.sort(key=lambda x: x[0])
+
+    # 构建 MIDI 轨道数据
+    track_data = []
+    current_tick = 0
+
+    for abs_tick, event_bytes in all_events:
+        delta = abs_tick - current_tick
+        track_data.extend(_write_var_len(delta))
+        track_data.extend(event_bytes)
+        current_tick = abs_tick
+
+    # 构建完整的 MIDI 文件
+    midi_buffer = io.BytesIO()
+
+    # Header Chunk: MThd
+    midi_buffer.write(b'MThd')
+    midi_buffer.write(struct.pack('>H', 6))  # header length
+    midi_buffer.write(struct.pack('>H', 0))   # format 0 (single track)
+    midi_buffer.write(struct.pack('>H', 1))   # number of tracks
+    midi_buffer.write(struct.pack('>H', ticks_per_beat))  # ticks per beat
+
+    # Track Chunk: MTrk
+    midi_buffer.write(b'MTrk')
+    track_bytes = bytes(track_data)
+    midi_buffer.write(struct.pack('>I', len(track_bytes)))
+    midi_buffer.write(track_bytes)
+
+    # 返回二进制数据
+    midi_buffer.seek(0)
+    return {"midi": midi_buffer.getvalue()}
