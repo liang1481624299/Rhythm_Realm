@@ -2,10 +2,10 @@
 # 利用 paddleOCR 识别手写和声标记，利用规则引擎进行评分
 
 import re
-from dna import MAJOR_DNA, MINOR_DNA
-from tonality import KEY_REGISTRY, transpose_dna, spell_midi
-from engine import get_chord_candidates, calculate_best_voicing, v_to_tuple, tuple_to_v
-from rules import evaluate_voicing
+from apps.sposobin.dna import MAJOR_DNA, MINOR_DNA
+from apps.sposobin.tonality import KEY_REGISTRY, transpose_dna, spell_midi
+from apps.sposobin.engine import get_chord_candidates, calculate_best_voicing, v_to_tuple, tuple_to_v
+from apps.sposobin.rules import evaluate_voicing
 
 # 和弦别名映射表（支持用户输入的各种变体）
 CHORD_ALIASES = {
@@ -184,7 +184,7 @@ def grade_chord_sequence(chord_sequence: list, key_name: str) -> dict:
         allowed_nexts = active_dna_db.get(current_chord, {}).get("next", [])
         if next_chord not in allowed_nexts:
             # 可能是同和弦转换，检查 siblings
-            from engine import get_chord_siblings
+            from apps.sposobin.engine import get_chord_siblings
             siblings = get_chord_siblings(current_chord, active_dna_db)
             if next_chord not in siblings:
                 issues.append({

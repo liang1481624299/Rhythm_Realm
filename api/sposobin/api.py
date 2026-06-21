@@ -21,6 +21,7 @@ from apps.sposobin.dna import MAJOR_DNA, MINOR_DNA, PITCH_Y
 from apps.sposobin.engine import build_full_dag, calculate_best_voicing, get_chord_candidates, get_chord_siblings, tuple_to_v, \
     v_to_tuple
 from apps.sposobin.rules import evaluate_voicing
+from apps.sposobin.grading import grade_chord_sequence, recognize_harmony_marks
 
 # ⚡ V1.2 专业升级版：注入全量声部对齐与熔断机制
 app = FastAPI(title="Sposobin Harmony Engine V1.3")
@@ -908,3 +909,48 @@ def export_midi(req: EngineRequest):
     # 返回二进制数据
     midi_buffer.seek(0)
     return {"midi": midi_buffer.getvalue()}
+
+
+# ==========================================
+# 拍照与手动批改 API 接口
+# ==========================================
+
+class GradeManualRequest(BaseModel):
+    key_name: str
+    chord_sequence: List[str]
+
+@app.post("/api/grade/manual")
+def grade_manual(req: GradeManualRequest):
+    result = grade_chord_sequence(req.chord_sequence, req.key_name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+class GradePhotoRequest(BaseModel):
+    key_name: str
+    image_data: str  # base64
+
+@app.post("/api/grade/photo")
+def grade_photo(req: GradePhotoRequest):
+    # 1. 识别图片中的和声标记
+    ocr_res = recognize_harmony_marks(req.image_data)
+    
+    # 2. 如果识别成功且有和弦序列，进行评分
+    if ocr_res.get("success") and ocr_res.get("chord_sequence"):
+        grade_res = grade_chord_sequence(ocr_res["chord_sequence"], req.key_name)
+        if "error" in grade_res:
+            return {
+                "recognition_info": ocr_res,
+                "error": grade_res["error"]
+            }
+        return {
+            "recognition_info": ocr_res,
+            **grade_res
+        }
+    
+    # 3. 否则只返回识别结果（可能需要用户手动输入/微调）
+    return {
+        "recognition_info": ocr_res,
+        "error": ocr_res.get("error", "未识别到明确的和弦序列")
+    }
+
